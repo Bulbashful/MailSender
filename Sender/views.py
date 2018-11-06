@@ -99,6 +99,10 @@ class RegistrationPage(View):
                                   f'{new_user.id}/{hashlib.sha224(str(new_user).encode()).hexdigest()}'
 
                 # TODO create message template
+                """
+                Note: Email would need to be confirmed, email verification. 
+                      Anyone can register but pending admin approval. 
+                """
                 # send mail confirm message
                 celery_send_mail.delay(
                     source_mail = settings.EMAIL_HOST_USER,
