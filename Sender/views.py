@@ -1,5 +1,6 @@
 import random
 import string
+import re
 import hashlib
 
 from django.db.models import Sum
@@ -88,6 +89,12 @@ class RegistrationPage(View):
         register_form = RegisterForm(request.POST)
         # password check
         if register_form.is_valid() and request.POST['password_first'] == request.POST['password_second']:
+
+            # TODO Добавить проверку домена e-mail'a в блек-листе
+            get_domain_pattern = re.compile('@(\w+)')
+            domain_result = get_domain_pattern.findall(register_form.cleaned_data['email'])
+            # domain_result будет содержать строку с чистым доменом, к прмиеру: gmail, yandex and etc.
+
             try:
                 # create new user in DB with `is_active=False` param
                 new_user = User.objects.create_user(username = register_form.cleaned_data['username'],
