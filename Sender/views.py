@@ -36,7 +36,7 @@ class HomePage(View):
 
 
 # home page
-class AccountActivation(View):
+class MailVerify(View):
     content = {}
 
     def get(self, request, id, activation_string):
@@ -44,9 +44,9 @@ class AccountActivation(View):
             user = User.objects.get(id = id)
             user_account_hash = hashlib.sha224(str(user).encode()).hexdigest()
             if activation_string == user_account_hash and not user.is_active:
-                # TODO сделать ---->
+                # TODO ---->
                 """
-                Помечать пользователя как подтвердившего почту, но аккаунт не активировать 
+                Check user mail as confirmed
                 """
 
                 messages.add_message(request, messages.SUCCESS, 'Success mail confirmation. Wait account activation.')
@@ -93,7 +93,7 @@ class RegistrationPage(View):
             # TODO Добавить проверку домена e-mail'a в блек-листе
             get_domain_pattern = re.compile('@(\w+)')
             domain_result = get_domain_pattern.findall(register_form.cleaned_data['email'])
-            # domain_result будет содержать строку с чистым доменом, к прмиеру: gmail, yandex and etc.
+            # domain_result contain clear domain: gmail, yandex and etc.
 
             try:
                 # create new user in DB with `is_active=False` param
