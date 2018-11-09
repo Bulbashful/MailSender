@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import MailerUser, UserEmails
 
-# Register your models here.
+admin.site.register(MailerUser)
+admin.site.register(UserEmails)

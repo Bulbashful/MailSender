@@ -10,7 +10,7 @@ urlpatterns = [
     url(r'^$', views.HomePage.as_view(), name='home'),
 
     # Account activation
-    url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.AccountActivation.as_view(), name = 'account_activation'),
+    #url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.AccountActivation.as_view(), name = 'account_activation'),
 
     # Login and registration
     url(r'^login/', views.LoginPage.as_view(), name='login'),
@@ -21,4 +21,4 @@ urlpatterns = [
 
 ]
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

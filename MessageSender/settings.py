@@ -55,7 +55,7 @@ ROOT_URLCONF = 'MessageSender.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        'DIRS': ['templates']
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -153,3 +153,6 @@ BROKER_URL = 'amqp://localhost:5672'
 CELERY_RESULT_BACKEND = 'rpc://'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/London'
+
+
+#twogunsandanotherone@gmail.com

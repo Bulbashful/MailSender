@@ -41,7 +41,7 @@ class MailVerify(View):
 
     def get(self, request, id, activation_string):
         try:
-            user = User.objects.get(id = id)
+            user = User.objects.get(id=id)
             user_account_hash = hashlib.sha224(str(user).encode()).hexdigest()
             if activation_string == user_account_hash and not user.is_active:
                 # TODO ---->
