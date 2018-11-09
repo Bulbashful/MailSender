@@ -17,7 +17,7 @@ urlpatterns = [
     url(r'^registration/', views.RegistrationPage.as_view(), name='registration'),
 
     # Password reset
-    url(r'^password-reset/', views.PasswordRecovery.as_view(), name = 'password_reset'),
+    url(r'^password-reset/', views.PasswordRecovery.as_view(), name='password_reset'),
 
 ]
 if settings.DEBUG:

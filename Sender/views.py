@@ -29,7 +29,10 @@ class HomePage(View):
 
     # get request
     def get(self, request):
-        pass
+        self.content.update({
+            'doc': 'index.html',
+        })
+        return render(request, 'base.html', self.content)
 
     def post(self, request):
         pass
@@ -80,7 +83,7 @@ class RegistrationPage(View):
 
     def get(self, request):
         self.content.update({
-            'doc': 'pages/registration.html',
+            'doc': 'RLR/registration.html',
         })
         return render(request, 'base.html', self.content)
 
@@ -97,10 +100,10 @@ class RegistrationPage(View):
 
             try:
                 # create new user in DB with `is_active=False` param
-                new_user = User.objects.create_user(username = register_form.cleaned_data['username'],
-                                                    email = register_form.cleaned_data['email'],
-                                                    password = register_form.cleaned_data['password_first'],
-                                                    is_active = False)
+                new_user = User.objects.create_user(username=register_form.cleaned_data['username'],
+                                                    email=register_form.cleaned_data['email'],
+                                                    password=register_form.cleaned_data['password_first'],
+                                                    is_active=False)
                 # create activation link
                 activation_link = f'http://{request.get_host()}/activation/' \
                                   f'{new_user.id}/{hashlib.sha224(str(new_user).encode()).hexdigest()}'
@@ -112,10 +115,10 @@ class RegistrationPage(View):
                 """
                 # send mail confirm message
                 celery_send_mail.delay(
-                    source_mail = settings.EMAIL_HOST_USER,
-                    target_mails = [new_user.email],
-                    text = f''' <MESSAGE_TEMPLATE> '''+activation_link,
-                    subject = 'Mail confirmation')
+                    source_mail=settings.EMAIL_HOST_USER,
+                    target_mails=[new_user.email],
+                    text=f''' <MESSAGE_TEMPLATE> '''+activation_link,
+                    subject='Mail confirmation')
 
                 messages.add_message(request, messages.SUCCESS, "You successfully registered! Check your mail!")
                 return redirect('home')
