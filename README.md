@@ -94,19 +94,19 @@ Learn more about creating a user in - Registration
 Поля First email и Second email отличаются.
 
 В поле где пользователь вводит First email/Second email он может ввести почту лишь с доменом своей фирмы, для этого создаётся модель с чёрным списком доменов(общественные домены, такие как: gmail.com, yandex.ru and etc.) в этом списке хранится всё что идёт в e-mail’е после @, при регистрации на бэкэнде проверяется совпадение введённого домена и доменов из черного списка и если совпадение найдено - регистрация не происходит и выводится ошибка(“В регистрации отказано, данный домен в чёрном списке”).
-Если регистрация прошла успешно, то пользователю на First email/Second email высылается сообщение со ссылкой для подтверждения почты и выставляется стандартный статус - not_confirmed_user(который не позволяет логиниться в систему).
+Если регистрация прошла успешно, то пользователю на First email/Second email высылается сообщение со ссылкой для подтверждения почты и выставляется стандартный статус - **not_confirmed_user**(который не позволяет логиниться в систему).
 
-После того как пользователь подтвердил email его статус меняется на - mail_confirmed_user(он всё ещё не может логиниться).
-После того как админ увидит с панеле админа пользователя со статусом mail_confirmed_user, он сможет его проверить и изменить статус на admin_confirmed_user, который позволит пользователю входить в аккаунт и пользоваться системой.
+После того как пользователь подтвердил email его статус меняется на - **mail_confirmed_user**(он всё ещё не может логиниться).
+После того как админ увидит с панеле админа пользователя со статусом **mail_confirmed_user**, он сможет его проверить и изменить статус на **admin_confirmed_user**, который позволит пользователю входить в аккаунт и пользоваться системой.
 
 ### Eng
 The user must fill in ALL the fields when registering.
 The First email and Second email fields are different.
 In the field where the user enters First email/Second email, he can enter mail only with the domain of his company, a model with a black list of domains (public domains such as: gmail.com, yandex.ru and etc.) is created for this purpose. all that goes to the e-mail after @, when registering on the backend, the match of the entered domain and the domains from the black list is checked and if a match is found - registration does not occur and an error is displayed (“Registration denied, this domain is blacklisted”).
 
-If the registration was successful, then a message will be sent to the First email / Second email to the user with a link to confirm mail and the standard status is not_confirmed_user (which does not allow logging into the system).
-After the user has confirmed the email, his status changes to - mail_confirmed_user (he still cannot log in).
-After the admin sees the admin user with the mail_confirmed_user status, he can check it and change the status to admin_confirmed_user, which will allow the user to log in and use the system.
+If the registration was successful, then a message will be sent to the First email / Second email to the user with a link to confirm mail and the standard status is **not_confirmed_user** (which does not allow logging into the system).
+After the user has confirmed the email, his status changes to - **mail_confirmed_user**(he still cannot log in).
+After the admin sees the admin user with the **mail_confirmed_user** status, he can check it and change the status to **admin_confirmed_user**, which will allow the user to log in and use the system.
 
 ## Verification
 ### Rus
