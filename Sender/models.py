@@ -17,6 +17,8 @@ class MailerUser(models.Model):
     """
     # user
     mailer_user = models.OneToOneField(User, on_delete = models.CASCADE, related_name='user_account')
+    # second user mail
+    mailer_second_mail = models.EmailField()
     # company name
     mailer_company = models.CharField(max_length = 250)
     # company address
