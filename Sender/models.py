@@ -3,20 +3,6 @@ from django.contrib.auth.models import Group, User
 from django.utils.timezone import now
 
 
-# user emails
-class UserEmails(models.Model):
-    """
-    mailer_first_email - user's first email
-    mailer_first_email_status - first email status of verification (True - verified, False - not)
-    mailer_second_email - user's second email
-    mailer_second_email_status - second email status of verification (True - verified, False - not)
-    """
-    mailer_first_email = models.EmailField(max_length=100, unique=True)
-    mailer_first_email_status = models.BooleanField(default=False)
-    mailer_second_email = models.EmailField(max_length=100, unique=True)
-    mailer_second_email_status = models.BooleanField(default=False)
-
-
 # user
 class MailerUser(models.Model):
     """
@@ -31,10 +17,6 @@ class MailerUser(models.Model):
     """
     # user
     mailer_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_account')
-    # user's emails
-    mailer_emails = models.OneToOneField(UserEmails, on_delete=models.CASCADE, related_name='user_emails', default=0)
-    # second user mail
-    # mailer_second_mail = models.EmailField()
     # company name
     mailer_company = models.CharField(max_length=250)
     # company address
@@ -51,7 +33,7 @@ class MailerUser(models.Model):
     admin_confirmed_user = "ACN"
     user_status_choice = (
         (not_confirmed_user, 'Not confirmed mail'),
-        (mail_confirmed_user, 'Confirmed mail'),
+        (mail_confirmed_user, 'Confirmed mails'),
         (admin_confirmed_user, 'Admin confirmed'),
     )
     mailer_user_status = models.CharField(max_length=3,
@@ -61,6 +43,21 @@ class MailerUser(models.Model):
 
     def __str__(self):
         return f'User: {self.mailer_user.username}; User status: {self.get_mailer_user_status_display()};'
+
+
+# user emails
+class UserEmails(models.Model):
+    """
+    mailer_first_email - user's first email
+    mailer_first_email_status - first email status of verification (True - verified, False - not)
+    mailer_second_email - user's second email
+    mailer_second_email_status - second email status of verification (True - verified, False - not)
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_emails', default=0, primary_key=True)
+    mailer_first_email = models.EmailField(max_length=100, unique=True)
+    mailer_first_email_status = models.BooleanField(default=False)
+    mailer_second_email = models.EmailField(max_length=100, unique=True)
+    mailer_second_email_status = models.BooleanField(default=False)
 
 
 class DomainBlackList(models.Model):

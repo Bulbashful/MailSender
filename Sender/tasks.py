@@ -5,6 +5,10 @@ from django.template.loader import render_to_string
 from django.core.cache import cache
 from MessageSender.celery import app
 
+"""
+to run celery use command : celery -A MessageSender worker -l info
+"""
+
 
 @app.task(name="message_send")
 def mass_send_mails(source_mail, target_mails, subject, text, link=None):

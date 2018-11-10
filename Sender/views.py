@@ -44,20 +44,47 @@ class MailVerify(View):
 
     def get(self, request, id, activation_string):
         try:
+            # user instance
             user = User.objects.get(id=id)
-            user_account_hash = hashlib.sha224(str(user).encode()).hexdigest()
-            if activation_string == user_account_hash and not user.is_active:
-                # TODO ---->
-                """
-                Check user mail as confirmed
-                """
+            # user email instance
+            email = UserEmails.objects.get(user=user)
 
-                messages.add_message(request, messages.SUCCESS, 'Success mail confirmation. Wait account activation.')
-                return redirect('home')
+            # first email address
+            first_email = email.mailer_first_email
+            # first email address status
+            first_email_status = email.mailer_first_email_status
+            # second email address
+            second_email = email.mailer_second_email
+            # second  email address status
+            second_email_status = email.mailer_second_email_status
 
+            # hash stings according user's emails
+            first_user_account_hash = hashlib.sha224(str(user.username + first_email).encode()).hexdigest()
+            second_user_account_hash = hashlib.sha224(str(user.username + second_email).encode()).hexdigest()
+
+            # call function that compare hash string and action code
+            first_email_state = check_email(request, activation_string, first_user_account_hash, first_email_status, user)
+            second_email_state = check_email(request, activation_string, second_user_account_hash, second_email_status, user)
+
+            # verify user email according of check_email() result
+            if first_email_state:
+                email.mailer_first_email_status = True
+            elif second_email_state:
+                email.mailer_second_email_status = True
+            # if user trying verify verified email
             else:
-                messages.add_message(request, messages.WARNING, 'Create new account firstly')
+                messages.add_message(request, messages.WARNING, 'Your email confirmed already')
 
+            # compares if emails verified. If true user setting is active and mailer user is setting 'emails
+            # confirmed status
+            if email.mailer_first_email_status and email.mailer_second_email_status:
+                mailer_user = MailerUser.objects.get(mailer_user=user)
+                mailer_user.mailer_user_status = mailer_user.mail_confirmed_user
+                user.is_active = True
+                user.save()
+                mailer_user.save()
+                messages.add_message(request, messages.INFO, 'Your emails confirmed successfully')
+            email.save()
         except:
             messages.add_message(request, messages.ERROR, 'Error while account activation')
 
@@ -77,11 +104,9 @@ class LoginPage(View):
         pass
 
 
-# TODO правки
 # registration page
 class RegistrationPage(View):
     content = {}
-    # black_list = ['gmail', 'outlook', 'icloud', 'yahoo', aol, gmx, zohom, protonmail, yandex, mail]
 
     def get(self, request):
         self.content.update({
@@ -100,6 +125,7 @@ class RegistrationPage(View):
         second_email = request.POST['second_email']
         # call function to check input part of data
         check_credentials = check_registration_credentials(password_first, password_second, first_email, second_email)
+
         if register_form.is_valid() and check_credentials:
             # regexp pattern
             get_domain_pattern = re.compile('@(\w+)')
@@ -119,18 +145,17 @@ class RegistrationPage(View):
                 new_user = User.objects.create_user(username=register_form.cleaned_data['username'],
                                                     password=register_form.cleaned_data['password_first'],
                                                     is_active=False)
-                # create user's emails
-                user_emails = UserEmails.objects.create(mailer_first_email=register_form.cleaned_data['first_email'],
-                                                        mailer_second_email=register_form.cleaned_data['second_email'])
                 # create not verified mailer_user
                 mailer_user = MailerUser.objects.create(mailer_user=new_user,
-                                                        mailer_emails=user_emails,
                                                         mailer_company=register_form.cleaned_data['company_name'],
                                                         mailer_company_address=register_form.cleaned_data['address'],
                                                         mailer_phone_number=register_form.cleaned_data['phone'],
                                                         mailer_company_industry=register_form.cleaned_data['industry'],
                                                         mailer_company_website=register_form.cleaned_data['website'])
-
+                # create user's emails
+                user_emails = UserEmails.objects.create(user=new_user,
+                                                        mailer_first_email=register_form.cleaned_data['first_email'],
+                                                        mailer_second_email=register_form.cleaned_data['second_email'])
                 # create activation links
                 links = {}
                 links.update({
@@ -139,9 +164,9 @@ class RegistrationPage(View):
                     user_emails.mailer_second_email: f'http://{request.get_host()}/activation/' \
                                     f'{new_user.id}/{hashlib.sha224(str(new_user.username + user_emails.mailer_second_email).encode()).hexdigest()}'
                 })
-                user_emails.save()
                 mailer_user.save()
-                # TODO create message template
+                user_emails.save()
+
                 """
                 Note: Email would need to be confirmed, email verification. 
                       Anyone can register but pending admin approval. 
@@ -180,9 +205,17 @@ class PasswordRecovery(View):
         pass
 
 
+# check identity password and that emails are various
 def check_registration_credentials(password_first, password_second, first_email, second_email):
     # check password on identity
     password_state = password_first == password_second
     # check email on identity
     email_state = first_email != second_email
     return password_state and email_state
+
+
+# function that check activation code and user email hash, email status and user state
+def check_email(request, activation_string, user_account_hash, email_status, user):
+    if activation_string == user_account_hash and not email_status and not user.is_active:
+        messages.add_message(request, messages.INFO, 'Your email confirmed successfully')
+        return True
