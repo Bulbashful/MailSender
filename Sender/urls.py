@@ -12,8 +12,9 @@ urlpatterns = [
     # Account activation
     url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.MailVerify.as_view(), name='account_activation'),
 
-    # Login and registration
+    # Login, logout and registration
     url(r'^login/', views.LoginPage.as_view(), name='login'),
+    url(r'^logout/', views.Logout.as_view(), name='logout'),
     url(r'^registration/', views.RegistrationPage.as_view(), name='registration'),
 
     # Password reset

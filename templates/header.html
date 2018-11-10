@@ -1,3 +1,12 @@
 <div class="header">
+    {% if user.is_authenticated %}
+        <form action="{% url 'logout' %}" method="POST">
+          {% csrf_token %}
+          <input type="submit" value="Log out">
+        </form>
+    {% else %}
     <a type="button" href="{% url 'registration' %}">Registration</a>
+    <a type="button" href="{% url 'login' %}">Login</a>
+    <a type="button" href="{% url 'password_reset' %}">Reset password</a>
+    {% endif %}
 </div>

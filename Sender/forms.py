@@ -35,3 +35,13 @@ class RegisterForm(forms.Form):
     website = forms.CharField(widget=forms.TextInput, label='Website')
 
 
+# login form
+class LoginForm(forms.Form):
+    username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username'}), label='Username')
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Password'}), label='Password')
+
+
+class PasswordRecoveryForm(forms.Form):
+    # email to send new password
+    email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
+        'placeholder': 'Enter your email to recovery password'}))
