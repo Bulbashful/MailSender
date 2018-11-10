@@ -12,9 +12,9 @@ class UserEmails(models.Model):
     mailer_second_email_status - second email status of verification (True - verified, False - not)
     """
     mailer_first_email = models.EmailField(max_length=100, unique=True)
-    mailer_first_email_status = models.BooleanField()
+    mailer_first_email_status = models.BooleanField(default=False)
     mailer_second_email = models.EmailField(max_length=100, unique=True)
-    mailer_second_email_status = models.BooleanField()
+    mailer_second_email_status = models.BooleanField(default=False)
 
 
 # user
@@ -34,7 +34,7 @@ class MailerUser(models.Model):
     # user's emails
     mailer_emails = models.OneToOneField(UserEmails, on_delete=models.CASCADE, related_name='user_emails', default=0)
     # second user mail
-    mailer_second_mail = models.EmailField()
+    # mailer_second_mail = models.EmailField()
     # company name
     mailer_company = models.CharField(max_length=250)
     # company address
@@ -62,3 +62,12 @@ class MailerUser(models.Model):
     def __str__(self):
         return f'User: {self.mailer_user.username}; User status: {self.get_mailer_user_status_display()};'
 
+
+class DomainBlackList(models.Model):
+    """
+    name - domain that don't satisfy requirements
+    """
+    name = models.CharField(max_length=60)
+
+    def __str__(self):
+        return self.name

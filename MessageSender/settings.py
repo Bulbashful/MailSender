@@ -142,10 +142,10 @@ AUTH_USER_EMAIL_UNIQUE = True
 # set SMTP host. Default - `gmail`
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = '<mail>'
-EMAIL_HOST_PASSWORD = '<mail_pass>'
+EMAIL_HOST_USER = 'twogunsandanotherone@gmail.com'
+EMAIL_HOST_PASSWORD = 'My_very_hard_123'
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = '<mail>'
+DEFAULT_FROM_EMAIL = 'twogunsandanotherone@gmail.com'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Celery settings for rabbitmq
@@ -155,4 +155,3 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/London'
 
 
-#twogunsandanotherone@gmail.com

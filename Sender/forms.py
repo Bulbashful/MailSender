@@ -7,7 +7,7 @@ from django_summernote.widgets import SummernoteWidget
 # registration form
 class RegisterForm(forms.Form):
     # username
-    username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Login'}), label='Login')
+    username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username'}), label='Username')
     # password
     password_first = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 12,
                                                                        'placeholder':
