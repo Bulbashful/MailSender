@@ -55,7 +55,7 @@ ROOT_URLCONF = 'MessageSender.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
+        'DIRS': ['templates']
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -95,7 +95,6 @@ DATABASES = {
 }
 """
 
-
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
@@ -133,6 +132,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = ['Sender/static']
+MEDIA_ROOT = '/media/'
+MEDIA_URL = '/media/'
 
 # TODO on production
 # SESSION_COOKIE_AGE = 2*3600
@@ -142,10 +144,10 @@ AUTH_USER_EMAIL_UNIQUE = True
 # set SMTP host. Default - `gmail`
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = '<mail>'
-EMAIL_HOST_PASSWORD = '<mail_pass>'
+EMAIL_HOST_USER = 'twogunsandanotherone@gmail.com'
+EMAIL_HOST_PASSWORD = 'My_very_hard_123'
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = '<mail>'
+DEFAULT_FROM_EMAIL = 'twogunsandanotherone@gmail.com'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Celery settings for rabbitmq
@@ -153,3 +155,5 @@ BROKER_URL = 'amqp://localhost:5672'
 CELERY_RESULT_BACKEND = 'rpc://'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Europe/London'
+
+

@@ -1,0 +1,28 @@
+#logo {
+    width: 120px;
+}
+.form-label {
+    text-align: center;
+}
+#button-submit {
+    text-align: center;
+}
+#form-left {
+    float:left;
+}
+#form-right {
+    float:right;
+}
+header {
+  padding: 154px 0 100px;
+}
+
+@media (min-width: 992px) {
+  header {
+    padding: 156px 0 100px;
+  }
+}
+
+section {
+  padding: 150px 0;
+}

@@ -10,14 +10,15 @@ urlpatterns = [
     url(r'^$', views.HomePage.as_view(), name='home'),
 
     # Account activation
-    url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.AccountActivation.as_view(), name = 'account_activation'),
+    url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.MailVerify.as_view(), name='account_activation'),
 
-    # Login and registration
+    # Login, logout and registration
     url(r'^login/', views.LoginPage.as_view(), name='login'),
+    url(r'^logout/', views.Logout.as_view(), name='logout'),
     url(r'^registration/', views.RegistrationPage.as_view(), name='registration'),
 
     # Password reset
-    url(r'^password-reset/', views.PasswordRecovery.as_view(), name = 'password_reset'),
+    url(r'^password-reset/', views.PasswordRecovery.as_view(), name='password_reset'),
 
 ]
 if settings.DEBUG:

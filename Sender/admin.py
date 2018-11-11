@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import MailerUser, UserEmails, DomainBlackList
 
-# Register your models here.
+admin.site.register(MailerUser)
+admin.site.register(UserEmails)
+admin.site.register(DomainBlackList)
