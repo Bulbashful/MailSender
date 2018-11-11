@@ -6,10 +6,12 @@ Template link: https://esk.one/p/Ga6snzW9UMSzhY/
 ## Login
 
 2 Fields
+
 1. Username field.
 2. Password field
 
-3 buttons
+3 Buttons
+
 1. Log in
 2. Registration
 3. Reset password
@@ -21,7 +23,7 @@ Template link: https://esk.one/p/Ga6snzW9UMSzhY/
 Если пользователь ввёл данные для входа верно, подтвердил свой e-mail, но админ ещё не одобрил пользователя - выводится сообщение с текстом (“Аккаунт не активирован администрацией”)
 Если пользователь ввёл данные верно и его аккаунт активирован администрацией - он входит в аккаунт и начинает пользоваться системой.
 
-Для того что бы была возможность реализовать подобную систему, нужено расширить модель пользователя за счёт поля со статусом пользователя, в котором будет три состояния:
+Для того что бы была возможность реализовать подобную систему, нужно расширить модель пользователя за счёт поля со статусом пользователя, в котором будет три состояния:
 ``` python
 # status user
 not_confirmed_user = "NCN"
@@ -71,7 +73,8 @@ Learn more about creating a user in - Registration
 
 ## Registration
 
-2 Fields
+10 Fields
+
 1. Username field
 2. Password field
 3. Password repeat field
@@ -83,7 +86,8 @@ Learn more about creating a user in - Registration
 9. Industry
 10. Website
 
-3 buttons
+3 Buttons
+
 1. Log in
 2. Registration
 3. Reset password
@@ -93,16 +97,16 @@ Learn more about creating a user in - Registration
 
 Поля First email и Second email отличаются.
 
-В поле где пользователь вводит First email/Second email он может ввести почту лишь с доменом своей фирмы, для этого создаётся модель с чёрным списком доменов(общественные домены, такие как: gmail.com, yandex.ru and etc.) в этом списке хранится всё что идёт в e-mail’е после @, при регистрации на бэкэнде проверяется совпадение введённого домена и доменов из черного списка и если совпадение найдено - регистрация не происходит и выводится ошибка(“В регистрации отказано, данный домен в чёрном списке”).
+В поле где пользователь вводит First email/Second email он может ввести почту лишь с доменом своей фирмы, для этого создаётся модель с чёрным списком доменов(общественные домены, такие как: gmail.com, yandex.ru and etc.) в этом списке хранится всё что, идёт в e-mail’е после @, при регистрации на бэкэнде проверяется совпадение введённого домена и доменов из черного списка и если совпадение найдено - регистрация не происходит и выводится ошибка(“В регистрации отказано, данный домен в чёрном списке”).
 Если регистрация прошла успешно, то пользователю на First email/Second email высылается сообщение со ссылкой для подтверждения почты и выставляется стандартный статус - **not_confirmed_user**(который не позволяет логиниться в систему).
 
 После того как пользователь подтвердил email его статус меняется на - **mail_confirmed_user**(он всё ещё не может логиниться).
-После того как админ увидит с панеле админа пользователя со статусом **mail_confirmed_user**, он сможет его проверить и изменить статус на **admin_confirmed_user**, который позволит пользователю входить в аккаунт и пользоваться системой.
+После того как админ увидит в панеле админа пользователя со статусом **mail_confirmed_user**, он сможет его проверить и изменить статус на **admin_confirmed_user**, который позволит пользователю входить в аккаунт и пользоваться системой.
 
 ### Eng
 The user must fill in ALL the fields when registering.
 The First email and Second email fields are different.
-In the field where the user enters First email/Second email, he can enter mail only with the domain of his company, a model with a black list of domains (public domains such as: gmail.com, yandex.ru and etc.) is created for this purpose. all that goes to the e-mail after @, when registering on the backend, the match of the entered domain and the domains from the black list is checked and if a match is found - registration does not occur and an error is displayed (“Registration denied, this domain is blacklisted”).
+In the field where the user enters First email/Second email, he can enter mail only with the domain of his company, a model with a black list of domains (public domains such as: gmail.com, yandex.ru and etc.) is created for this purpose. All that goes to the e-mail after @, when registering on the backend, the match of the entered domain and the domains from the black list is checked and if a match is found - registration does not occur and an error is displayed (“Registration denied, this domain is blacklisted”).
 
 If the registration was successful, then a message will be sent to the First email / Second email to the user with a link to confirm mail and the standard status is **not_confirmed_user** (which does not allow logging into the system).
 After the user has confirmed the email, his status changes to - **mail_confirmed_user**(he still cannot log in).
@@ -115,8 +119,9 @@ After the admin sees the admin user with the **mail_confirmed_user** status, he 
 Для этого на оба введённых email высылается по одному письму со ссылками для активации. 
 
 Ссылка имеет вид:
+```host.com/activation/<MailerUser.id>/<hashlib.sha224(str(MailerUser.username + UserEmails.mailer_first_email).encode()).hexdigest()>```
 
-```www.host.com/activation/<user_id>/<mail_id(1,2)>/<verify_key>```
+```host.com/activation/<MailerUser.id>/<hashlib.sha224(str(MailerUser.username + UserEmails.mailer_second_email).encode()).hexdigest()>```
 
 После активации двух почт - пользователь получает возможность входа в аккаунт.
 
@@ -127,7 +132,8 @@ To do this, both emails are sent one by one with activation links.
 
 The link looks like:
 
-```www.host.com/activation/<user_id>/<mail_id(1,2)>/<verify_key>```
+```host.com/activation/<MailerUser.id>/<hashlib.sha224(str(MailerUser.username + UserEmails.mailer_first_email).encode()).hexdigest()>```
+
+```host.com/activation/<MailerUser.id>/<hashlib.sha224(str(MailerUser.username + UserEmails.mailer_second_email).encode()).hexdigest()>```
 
 After activating the two mails - the user gets the opportunity to log into the account.
-
