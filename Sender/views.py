@@ -31,6 +31,7 @@ class HomePage(View):
     def get(self, request):
         self.content.update({
             'doc': 'index.html',
+            'title': 'Main',
         })
         return render(request, 'base.html', self.content)
 
@@ -100,6 +101,7 @@ class LoginPage(View):
     def get(self, request):
         self.content.update({
             'doc': 'forms/login.html',
+            'title': 'login',
             'login_form': LoginForm(),
         })
         return render(request, 'base.html', self.content)
@@ -132,7 +134,7 @@ class LoginPage(View):
 class Logout(View):
     content = {}
 
-    def post(self, request):
+    def get(self, request):
         logout(request)
         messages.add_message(request, messages.SUCCESS, 'LogOut completed successfully!')
         return redirect('home')
@@ -145,6 +147,7 @@ class RegistrationPage(View):
     def get(self, request):
         self.content.update({
             'doc': 'forms/registration.html',
+            'title': 'Registration',
             'registration_form': RegisterForm(),
         })
         return render(request, 'base.html', self.content)
@@ -238,6 +241,7 @@ class PasswordRecovery(View):
     def get(self, request):
         self.content.update({
             'doc': 'forms/reset_password.html',
+            'title': 'Password recovery',
             'reset_password_form': PasswordRecoveryForm(),
         })
         return render(request, 'base.html', self.content)
