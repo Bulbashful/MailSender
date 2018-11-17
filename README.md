@@ -131,3 +131,31 @@ The link looks like:
 
 After activating the two mails - the user gets the opportunity to log into the account.
 
+
+## Change account info
+### Rus
+Пользователь может изменить только один email за один раз вместе с другими полями. 
+
+При попытке изменения двух, выстветиться соответствующее оповешение. При удачной смене
+
+email-а юзер становится неактивным, пока он не подтвертит новый email. Другие поля изменяются
+
+успешно.
+
+### Eng
+User can only change one email in one try. In attempt of changing two emails he wil be
+
+notice about error operation. When user changes his email he becomes inactive while
+ 
+not confirm new email. Other fields changes successfully
+
+## Change password
+### Rus
+Для изменение пароля нужно ввести старый и новый.
+
+### Eng
+To change password need inter new and old password.
+
+
+
+

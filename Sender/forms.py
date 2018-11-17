@@ -97,3 +97,12 @@ class PasswordRecoveryForm(forms.Form):
     email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
         'placeholder': 'Enter your email to recovery password',
         'class': 'form-control form-control-sm'}))
+
+
+class ChangePasswordForm(forms.Form):
+    # email to send new password
+    old_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Old password',
+                                                                     'class': 'form-control form-control-sm'}))
+    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 12,
+                                                                     'placeholder':'New password - at least 12 characters',
+                                                                     'class': 'form-control form-control-sm'}),)
