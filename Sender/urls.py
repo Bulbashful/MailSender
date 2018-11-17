@@ -9,6 +9,9 @@ urlpatterns = [
     url(r'^home/', views.HomePage.as_view(), name='home'),
     url(r'^$', views.HomePage.as_view(), name='home'),
 
+    # user account
+    url(r'^account-settings/', views.AccountSettings.as_view(), name='account-settings'),
+
     # Account activation
     url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.MailVerify.as_view(), name='account_activation'),
 

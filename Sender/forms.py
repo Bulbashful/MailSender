@@ -50,6 +50,40 @@ class RegisterForm(forms.Form):
                               label='Website')
 
 
+class ChangeUserInfo(forms.Form):
+    mailer_user = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username',
+                                                             'class': 'form-control form-control-sm'}),
+                               label='Username', required=False)
+    # company name
+    mailer_company = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
+                                                                 'placeholder': 'Company name'}),
+                                   label='Company name', required=False)
+    # company address
+    mailer_company_address = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
+                                                            'placeholder': 'Address'}),
+                              label='Address', required=False)
+    # first email
+    mailer_first_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
+        'placeholder': 'E-mail (your company domain)',
+        'class': 'form-control form-control-sm'}), required=False)
+    # second email
+    mailer_second_email = forms.EmailField(label='Second e-mail', widget=forms.EmailInput(attrs={
+        'placeholder': 'Second e-mail (your company domain)',
+        'class': 'form-control form-control-sm'}), required=False)
+    # contact number
+    mailer_phone_number = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
+                                                          'placeholder': 'Contact number'}),
+                            label='Contact number', required=False)
+    # industry
+    mailer_company_industry = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
+                                                             'placeholder': 'Industry'}),
+                               label='Industry', required=False)
+    # company website
+    mailer_company_website = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
+                                                            'placeholder': 'Website'}),
+                              label='Website', required=False)
+
+
 # login form
 class LoginForm(forms.Form):
     username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username',
