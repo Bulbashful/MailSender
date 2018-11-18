@@ -16,9 +16,10 @@ from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
 
 from .models import User, DomainBlackList, UserEmails, MailerUser
-from .forms import RegisterForm, LoginForm, PasswordRecoveryForm
+from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm
 
 from .tasks import mass_send_mails
 
@@ -27,7 +28,6 @@ from .tasks import mass_send_mails
 class HomePage(View):
     content = {}
 
-    # get request
     def get(self, request):
         self.content.update({
             'doc': 'index.html',
@@ -37,6 +37,175 @@ class HomePage(View):
 
     def post(self, request):
         pass
+
+
+# home page
+class AccountSettings(View):
+    content = {}
+    fields_format = {'mailer_user': 'Username',
+                     'mailer_company': 'Company name',
+                     'mailer_company_address': 'Company address',
+                     'mailer_first_email': 'First email',
+                     'mailer_second_email': 'Second email',
+                     'mailer_phone_number': 'Contact number',
+                     'mailer_company_industry': 'Company industry',
+                     'mailer_company_website': 'Company website'}
+
+    # convert fields to present view for email
+    def present_string_format(self, fields):
+        return ' ,'.join([self.fields_format[field] for field in fields])
+
+    # return user object and init dict
+    def get_user_with_init(self):
+        user = self.request.user
+        data = {'mailer_user': user.username,
+                'mailer_company': user.user_account.mailer_company,
+                'mailer_company_address': user.user_account.mailer_company_address,
+                'mailer_first_email': user.user_emails.mailer_first_email,
+                'mailer_second_email': user.user_emails.mailer_second_email,
+                'mailer_phone_number': user.user_account.mailer_phone_number,
+                'mailer_company_industry': user.user_account.mailer_company_industry,
+                'mailer_company_website': user.user_account.mailer_company_website}
+        return user, data
+
+    # function that check if username has changes
+    def if_change_username(self, user, fields, changed_form):
+        if 'mailer_user' in fields:
+            try:
+                setattr(user, 'username', changed_form.cleaned_data['mailer_user'])
+                user.save()
+                return True
+            # if user username already exist
+            except IntegrityError:
+                messages.add_message(self.request, messages.WARNING,
+                                     "Username already exists")
+                return redirect('account-settings')
+
+    # danger!
+    def save_model_and_send_email(self, user, changed_form, fields, email_num=None):
+        # case when form contain one email
+        if email_num is not None:
+            self.if_change_username(user, fields, changed_form)
+
+            [setattr(user.user_account if attr != email_num else
+                     user.user_emails, attr, changed_form.cleaned_data[attr]) for attr in fields if attr != 'mailer_user']
+
+            # set account as non active
+            setattr(user.user_emails, email_num + '_status', False)
+            setattr(user.user_account, 'mailer_user_status', "NCN")
+            setattr(user, 'is_active', False)
+
+            user.save()
+            user.user_emails.save()
+
+            # new email that needed to be verified
+            first_email = getattr(user.user_emails, email_num)
+            # second user email to inform user about changed fields
+            second_email = getattr(user.user_emails, 'mailer_first_email' if email_num == 'mailer_second_email' else
+                                                                                                'mailer_second_email')
+
+            # new hash
+            link = f'http://{self.request.get_host()}/activation/{user.id}/' \
+                          f'{hashlib.sha224(str(user.username + first_email).encode()).hexdigest()}'
+
+            fields = self.present_string_format(fields)
+
+            # dict contains info about new email to send end info of changed info to send to second email
+            emails = {'new_email_to_validate': [first_email, 'Confirm pls your email', 'Mail confirmation', link],
+                      'second_email_with_info': [second_email, fields, 'Changed fields', None]}
+
+            for email in emails:
+                mass_send_mails.delay(
+                    source_mail=settings.EMAIL_HOST_USER,
+                    target_mails=emails[email][0],
+                    text=emails[email][1],
+                    subject=emails[email][2],
+                    link=emails[email][3])
+
+            logout(self.request)
+        # case when form contains two emails or none
+        else:
+            self.if_change_username(user, fields, changed_form)
+            [setattr(user.user_account, attr, changed_form.cleaned_data[attr]) for attr in fields if attr !='mailer_user']
+
+            # if form contains 2 changed emails - remove them
+            try:
+                fields.remove('mailer_first_email')
+                fields.remove('mailer_second_email')
+            except ValueError:
+                pass
+
+            fields = self.present_string_format(fields)
+
+            mass_send_mails.delay(
+                source_mail=settings.EMAIL_HOST_USER,
+                target_mails=user.user_emails.mailer_first_email,
+                text=fields,
+                subject='Changed fields')
+        user.user_account.save()
+        return redirect('account-settings')
+
+    def get(self, request):
+        if not self.request.user.is_anonymous:
+            user, data = self.get_user_with_init()
+            self.content.update({
+                'doc': 'user_account.html',
+                'title': 'Account Settings',
+                'change_info_form': ChangeUserInfo(initial=data)
+            })
+            return render(request, 'base.html', self.content)
+        else:
+            return redirect('home')
+
+    def post(self, request):
+        user, data = self.get_user_with_init()
+        # parse registration form
+        changed_form = ChangeUserInfo(request.POST, initial=data)
+        if changed_form.has_changed() and changed_form.is_valid():
+            fields = changed_form.changed_data
+            if 'mailer_first_email' in fields and 'mailer_second_email' in fields:
+                messages.add_message(request, messages.WARNING,
+                                     "You can change only one email")
+                self.save_model_and_send_email(user, changed_form, fields)
+            elif 'mailer_first_email' in fields:
+                self.save_model_and_send_email(user, changed_form, fields, 'mailer_first_email')
+            elif 'mailer_second_email' in fields:
+                self.save_model_and_send_email(user, changed_form, fields, 'mailer_second_email')
+            else:
+                self.save_model_and_send_email(user, changed_form, fields)
+        else:
+            messages.add_message(request, messages.WARNING,
+                                 "Form not valid")
+        return redirect('account-settings')
+
+
+class ChangePassword(View):
+    content = {}
+
+    def get(self, request):
+        self.content.update({
+            'doc': 'forms/change_password.html',
+            'change_password_form': ChangePasswordForm(),
+            'title': 'Change password',
+        })
+        return render(request, 'base.html', self.content)
+
+    def post(self, request):
+        form = ChangePasswordForm(request.POST)
+        if form.is_valid():
+            # call function to create password
+            old_password = self.request.user.check_password(form.cleaned_data['old_password'])
+            if old_password is not None:
+                self.request.user.set_password(form.cleaned_data['new_password'])
+                mass_send_mails.delay(target_mails=self.request.user.user_emails.mailer_first_email,
+                                      source_mail=settings.EMAIL_HOST_USER,
+                                      text=f'Password has changed successfully',
+                                      subject='Change password.')
+
+                messages.add_message(request, messages.INFO, "Password changed!")
+        else:
+            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
+        return redirect('change-password')
 
 
 # mail verification
@@ -258,7 +427,7 @@ class PasswordRecovery(View):
                 user.set_password(new_password)
                 user.save()
 
-                mass_send_mails.delay(target_mails=(target_mail),
+                mass_send_mails.delay(target_mails=target_mail,
                                       source_mail=settings.EMAIL_HOST_USER,
                                       text=f'Your new Password : {new_password}',
                                       subject='Change password.')
@@ -269,7 +438,7 @@ class PasswordRecovery(View):
             except ObjectDoesNotExist:
                 messages.add_message(request, messages.WARNING, "Email not found!")
         else:
-            messages.add_message(request, messages.WARNING, "Invalid form data")
+            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
         return redirect('password_reset')
 
 
