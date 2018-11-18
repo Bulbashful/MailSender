@@ -1,5 +1,4 @@
 from django import forms
-from .models import *
 
 from django_summernote.widgets import SummernoteWidget
 
@@ -10,13 +9,13 @@ class RegisterForm(forms.Form):
     username = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Username',
                                                              'class': 'form-control form-control-sm'}), label='Username')
     # password
-    password_first = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 12,
+    password_first = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8,
                                                                        'placeholder':
-                                                                           'Password - at least 12 characters',
+                                                                           'Password - at least 8 characters',
                                                                        'class': 'form-control form-control-sm'}),
                                      label='Password')
     # confirmation password
-    password_second = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 12,
+    password_second = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8,
                                                                         'placeholder': 'Repeat the password',
                                                                         'class': 'form-control form-control-sm'}),
                                       label='Confirm password')
@@ -29,9 +28,9 @@ class RegisterForm(forms.Form):
                                                             'placeholder': 'Address'}),
                               label='Address')
     # first email
-    first_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
-        'placeholder': 'E-mail (your company domain)',
-        'class': 'form-control form-control-sm'}))
+    first_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={'placeholder': 'E-mail (your company domain)',
+                                                                                  'class': 'form-control form-control-sm'}))
+
     # second email
     second_email = forms.EmailField(label='Second e-mail', widget=forms.EmailInput(attrs={
         'placeholder': 'Second e-mail (your company domain)',
@@ -103,6 +102,6 @@ class ChangePasswordForm(forms.Form):
     # email to send new password
     old_password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Old password',
                                                                      'class': 'form-control form-control-sm'}))
-    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 12,
-                                                                     'placeholder':'New password - at least 12 characters',
+    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8,
+                                                                     'placeholder':'New password - at least 8 characters',
                                                                      'class': 'form-control form-control-sm'}),)
