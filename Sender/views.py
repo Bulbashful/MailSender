@@ -50,6 +50,10 @@ class AccountSettings(LoginRequiredMixin, View):
                      'mailer_phone_number': 'Contact number',
                      'mailer_company_industry': 'Company industry',
                      'mailer_company_website': 'Company website'}
+    
+    # redirect if not log in
+    login_url = '/login/'                 
+    redirect_field_name = 'login'
 
     # convert fields to present view for email
     def present_string_format(self, fields):
