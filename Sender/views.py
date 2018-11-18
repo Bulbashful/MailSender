@@ -15,8 +15,8 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils.timezone import now
-from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import User, DomainBlackList, UserEmails, MailerUser
 from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm
@@ -39,8 +39,8 @@ class HomePage(View):
         pass
 
 
-# home page
-class AccountSettings(View):
+# account settings page
+class AccountSettings(LoginRequiredMixin, View):
     content = {}
     fields_format = {'mailer_user': 'Username',
                      'mailer_company': 'Company name',
