@@ -184,8 +184,12 @@ class AccountSettings(LoginRequiredMixin, View):
         return redirect('account-settings')
 
 
-class ChangePassword(View):
+class ChangePassword(LoginRequiredMixin, View):
     content = {}
+
+    # redirect if not log in
+    login_url = '/login/'                 
+    redirect_field_name = 'login'
 
     def get(self, request):
         self.content.update({
