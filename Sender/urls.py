@@ -1,28 +1,30 @@
 from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import include, path
+
 
 from . import views
 
 urlpatterns = [
     # Home pages
-    url(r'^home/', views.HomePage.as_view(), name='home'),
-    url(r'^$', views.HomePage.as_view(), name='home'),
+    path('', views.HomePage.as_view(), name='home'),
+    path('home/', views.HomePage.as_view(), name='home'),
 
     # user account
-    url(r'^account-settings/', views.AccountSettings.as_view(), name='account-settings'),
-    url(r'^change-password/', views.ChangePassword.as_view(), name='change-password'),
+    path('account-settings/', views.AccountSettings.as_view(), name='account-settings'),
+    path('change-password/', views.ChangePassword.as_view(), name='change-password'),
 
     # Account activation
-    url(r'^activation/(?P<id>[0-9]+)/(?P<activation_string>\w+)/$', views.MailVerify.as_view(), name='account_activation'),
+    path('activation/<int:id>/<slug:activation_string>/', views.MailVerify.as_view(), name='account_activation'),
 
     # Login, logout and registration
-    url(r'^login/', views.LoginPage.as_view(), name='login'),
-    url(r'^logout/', views.Logout.as_view(), name='logout'),
-    url(r'^registration/', views.RegistrationPage.as_view(), name='registration'),
+    path('login/', views.LoginPage.as_view(), name='login'),
+    path('logout/', views.Logout.as_view(), name='logout'),
+    path('registration/', views.RegistrationPage.as_view(), name='registration'),
 
     # Password reset
-    url(r'^password-reset/', views.PasswordRecovery.as_view(), name='password_reset'),
+    path('password-reset/', views.PasswordRecovery.as_view(), name='password_reset'),
 
 ]
 if settings.DEBUG:
