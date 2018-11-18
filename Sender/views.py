@@ -441,7 +441,18 @@ class PasswordRecovery(View):
 
 
 # check identity password and that emails are various
-def check_registration_credentials(request, password_first, password_second, first_email, second_email):
+def check_registration_credentials(request, password_first: str, password_second: str, first_email: str, second_email: str):
+    """
+    Function check passwords(must be similar) and email(must be not similar and not contain domains from DomainBlackList)
+
+    :param request: - view request
+    :param password_first: - first inserted password
+    :param password_second: - second inserted password
+    :param first_email: - first inserted email
+    :param second_email: - second inserted email
+
+    :return: True(if all is Ok) or False(if some error happen)
+    """
     # regexp pattern for mail domain checking
     get_domain_pattern = re.compile('@(\w+)')
 
