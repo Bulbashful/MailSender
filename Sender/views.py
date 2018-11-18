@@ -222,16 +222,16 @@ class MailVerify(View):
             # user instance
             user = User.objects.get(id=id)
             # user email instance
-            email = UserEmails.objects.get(user=user)
+            user_emails = UserEmails.objects.get(user=user)
 
             # first email address
-            first_email = email.mailer_first_email
+            first_email = user_emails.mailer_first_email
             # first email address status
-            first_email_status = email.mailer_first_email_status
+            first_email_status = user_emails.mailer_first_email_status
             # second email address
-            second_email = email.mailer_second_email
+            second_email = user_emails.mailer_second_email
             # second  email address status
-            second_email_status = email.mailer_second_email_status
+            second_email_status = user_emails.mailer_second_email_status
 
             # hash stings according user's emails
             first_user_account_hash = hashlib.sha224(str(user.username + first_email).encode()).hexdigest()
@@ -243,23 +243,23 @@ class MailVerify(View):
 
             # verify user email according of check_email() result
             if first_email_state:
-                email.mailer_first_email_status = True
+                user_emails.mailer_first_email_status = True
             elif second_email_state:
-                email.mailer_second_email_status = True
+                user_emails.mailer_second_email_status = True
             # if user trying verify verified email
             else:
                 messages.add_message(request, messages.WARNING, 'Your email confirmed already')
 
             # compares if emails verified. If true user setting is active and mailer user is setting 'emails
             # confirmed status
-            if email.mailer_first_email_status and email.mailer_second_email_status:
+            if user_emails.mailer_first_email_status and user_emails.mailer_second_email_status:
                 mailer_user = MailerUser.objects.get(mailer_user=user)
                 mailer_user.mailer_user_status = mailer_user.mail_confirmed_user
                 user.is_active = True
                 user.save()
                 mailer_user.save()
-                messages.add_message(request, messages.INFO, 'Your emails confirmed successfully')
-            email.save()
+                messages.add_message(request, messages.SUCCESS, 'All your emails confirmed successfully')
+            user_emails.save()
         except:
             messages.add_message(request, messages.ERROR, 'Error while account activation')
 
