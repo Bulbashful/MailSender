@@ -7,6 +7,7 @@ from django.utils.timezone import now
 class MailerUser(models.Model):
     """
     Model improve standard User model.
+    
     mailer_user - one-to-one with User
     mailer_company - company name
     mailer_company_address - company address
@@ -48,6 +49,8 @@ class MailerUser(models.Model):
 # user emails
 class UserEmails(models.Model):
     """
+    Model with user emails
+
     mailer_first_email - user's first email
     mailer_first_email_status - first email status of verification (True - verified, False - not)
     mailer_second_email - user's second email
@@ -62,6 +65,8 @@ class UserEmails(models.Model):
 
 class DomainBlackList(models.Model):
     """
+    Model with black list domains
+
     name - domain that don't satisfy requirements
     """
     name = models.CharField(max_length=60)
