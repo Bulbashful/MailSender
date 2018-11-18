@@ -6,7 +6,8 @@ from django.core.cache import cache
 from MessageSender.celery import app
 
 """
-to run celery use command : celery -A MessageSender worker -l info
+to run celery use command : 
+celery -A MessageSender worker -l info
 """
 
 
