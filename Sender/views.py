@@ -198,16 +198,23 @@ class ChangePassword(View):
     def post(self, request):
         form = ChangePasswordForm(request.POST)
         if form.is_valid():
-            # call function to create password
+            # check user old password
             old_password = self.request.user.check_password(form.cleaned_data['old_password'])
-            if old_password is not None:
+            # if old password is true
+            if old_password:
+                # set new password
                 self.request.user.set_password(form.cleaned_data['new_password'])
+                # save user profile
+                self.request.user.save()
+                # send mail notofication
                 mass_send_mails.delay(target_mails=self.request.user.user_emails.mailer_first_email,
                                       source_mail=settings.EMAIL_HOST_USER,
                                       text=f'Password has changed successfully',
                                       subject='Change password.')
-
-                messages.add_message(request, messages.INFO, "Password changed!")
+                
+                messages.add_message(request, messages.SUCCESS, "Password changed!")
+            else:
+                messages.add_message(request, messages.ERROR, "Invalid old password!")
         else:
             messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
         return redirect('change-password')
@@ -341,7 +348,6 @@ class RegistrationPage(View):
         second_email = request.POST['second_email']
         # call function to check input part of data
         check_credentials = check_registration_credentials(request, password_first, password_second, first_email, second_email)
-
 
         if register_form.is_valid() and check_credentials:
 
