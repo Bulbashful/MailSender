@@ -421,7 +421,7 @@ class PasswordRecovery(View):
             new_password = random_password()
             try:
                 # searching and setting new password for user
-                user = UserEmails.objects.get(mailer_first_email=target_mail).user
+                user = UserEmails.objects.get(Q(mailer_first_email=target_mail) | Q(mailer_second_email=target_mail)).user
                 user.set_password(new_password)
                 user.save()
 
