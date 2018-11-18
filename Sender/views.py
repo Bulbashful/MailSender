@@ -328,27 +328,17 @@ class RegistrationPage(View):
     def post(self, request):
         # parse registration form
         register_form = RegisterForm(request.POST)
+
         # password and emails fields from form
         password_first = request.POST['password_first']
         password_second = request.POST['password_second']
         first_email = request.POST['first_email']
         second_email = request.POST['second_email']
         # call function to check input part of data
-        check_credentials = check_registration_credentials(password_first, password_second, first_email, second_email)
+        check_credentials = check_registration_credentials(request, password_first, password_second, first_email, second_email)
+
 
         if register_form.is_valid() and check_credentials:
-            # regexp pattern
-            get_domain_pattern = re.compile('@(\w+)')
-            # first_email_domain and  second_email_domain contains clear domain: gmail, yandex and etc.
-            first_email_domain = get_domain_pattern.findall(register_form.cleaned_data['first_email'])
-            second_email_domain = get_domain_pattern.findall(register_form.cleaned_data['second_email'])
-            # domain_result contain query result, if two email not it black list then domain_result is 0
-            domain_result = DomainBlackList.objects.filter(Q(name=first_email_domain) | Q(name=second_email_domain))
-
-            if len(domain_result) != 0:
-                messages.add_message(request, messages.ERROR,
-                                     "Can't create account, your e-mail does not meet the requirements")
-                return redirect('registration')
 
             try:
                 # create new user in DB with `is_active=False` param
@@ -447,12 +437,31 @@ class PasswordRecovery(View):
 
 
 # check identity password and that emails are various
-def check_registration_credentials(password_first, password_second, first_email, second_email):
+def check_registration_credentials(request, password_first, password_second, first_email, second_email):
+    # regexp pattern for mail domain checking
+    get_domain_pattern = re.compile('@(\w+)')
+
     # check password on identity
-    password_state = password_first == password_second
-    # check email on identity
-    email_state = first_email != second_email
-    return password_state and email_state
+    if password_first != password_second:
+        messages.add_message(request, messages.WARNING, "Passwords not similar")
+        return False
+    # check meail on identity
+    if first_email == second_email:
+        messages.add_message(request, messages.WARNING, "Email's are similar")
+        return False
+
+    # first_email_domain and  second_email_domain contains clear domain: gmail, yandex and etc.
+    first_email_domain = get_domain_pattern.findall(first_email)
+    second_email_domain = get_domain_pattern.findall(second_email)
+    # domain_result contain query result, if two email not it black list then domain_result is 0
+    domain_result = DomainBlackList.objects.filter(Q(name=first_email_domain) | Q(name=second_email_domain)).first()
+
+    if domain_result:
+        messages.add_message(request, messages.ERROR,
+                             "Can't create account, your e-mail does not meet the requirements")
+        return False
+
+    return True
 
 
 # function that check activation code and user email hash, email status and user state
