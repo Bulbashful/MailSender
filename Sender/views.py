@@ -278,24 +278,28 @@ class LoginPage(View):
     def post(self, request):
         login_form = LoginForm(request.POST)
         if login_form.is_valid():
-            # try to find user and 404 if user not found
-            user = get_object_or_404(User, username=login_form.cleaned_data['username'])
-            # check password from user form to user instance
-            if user.check_password(login_form.cleaned_data['password']):
-                # check if verified emails
-                if not user.is_active:
-                    messages.add_message(request, messages.ERROR, 'Your emails does not verified yet')
-                # check account status
-                elif user.user_account.mailer_user_status != MailerUser.admin_confirmed_user:
-                    messages.add_message(request, messages.ERROR, "Admin don't verified your account yet")
-                # login if all ok
+            # try to find user in DB
+            user = User.objects.filter(username=login_form.cleaned_data['username']).first()
+            if user:
+                # check password from user form to user instance
+                if user.check_password(login_form.cleaned_data['password']):
+                    # check if verified emails
+                    if not user.is_active:
+                        messages.add_message(request, messages.ERROR, 'Your email(s) does not verified yet. You need verifie 2(!!!) emails.')
+                    # check account status
+                    elif user.user_account.mailer_user_status != MailerUser.admin_confirmed_user:
+                        messages.add_message(request, messages.ERROR, "Admin don't verified your account yet")
+                    # login if all ok
+                    else:
+                        login(request, user)
+                        return redirect('home')
                 else:
-                    login(request, user)
-                    return redirect('home')
+                    messages.add_message(request, messages.ERROR, 'Invalid username or password')
             else:
-                messages.add_message(request, messages.ERROR, 'Invalid username or password')
+                messages.add_message(request, messages.ERROR, 'Error in login attempt')
+        
         else:
-            messages.add_message(request, messages.ERROR, 'Error in login attempt')
+            messages.add_message(request, messages.ERROR, 'Error in login form')
         return redirect('login')
 
 
