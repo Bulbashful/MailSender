@@ -1,0 +1,20 @@
+{% block alert_messages %}
+    <div class="content d-flex justify-content-center">
+        {% for message in messages %}
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            {% elif  message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {% elif  message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+            {% endif %}
+                {{ message|safe|escape }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+        {% endfor %}
+    </div>
+{% endblock %}
