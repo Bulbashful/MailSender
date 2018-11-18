@@ -56,11 +56,12 @@ class AccountSettings(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     # convert fields to present view for email
-    def present_string_format(self, fields):
+    def __present_string_format(self, fields: list):
+        # make from changed fileds list - string separated by coma
         return ' ,'.join([self.fields_format[field] for field in fields])
 
     # return user object and init dict
-    def get_user_with_init(self):
+    def __get_user_with_init(self):
         user = self.request.user
         data = {'mailer_user': user.username,
                 'mailer_company': user.user_account.mailer_company,
