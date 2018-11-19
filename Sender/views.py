@@ -474,13 +474,16 @@ class PasswordRecovery(View):
         form = PasswordRecoveryForm(request.POST)
         if form.is_valid():
             target_mail = form.cleaned_data['email']
-            # call function to create password
-            new_password = random_password()
-            try:
-                # searching and setting new password for user
-                user = UserEmails.objects.get(Q(mailer_first_email=target_mail) | Q(mailer_second_email=target_mail)).user
-                user.set_password(new_password)
-                user.save()
+            # searching inserted emails
+            emails_user = UserEmails.objects.filter(Q(mailer_first_email=target_mail) | Q(mailer_second_email=target_mail)).first()
+            # if find emails - send new password
+            if emails_user:
+
+                # call function to create password
+                new_password = random_password()
+                # set new pass and save
+                emails_user.user.set_password(new_password)
+                emails_user.user.save()
 
                 mass_send_mails.delay(target_mails=target_mail,
                                       source_mail=settings.EMAIL_HOST_USER,
@@ -490,7 +493,7 @@ class PasswordRecovery(View):
                 messages.add_message(request, messages.WARNING, "Password changed! Log in now please.")
                 return redirect('home')
 
-            except ObjectDoesNotExist:
+            else:
                 messages.add_message(request, messages.WARNING, "Email not found!")
         else:
             messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
