@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import Group, User
 from django.utils.timezone import now
 
+from taggit.managers import TaggableManager
+
+
 
 # user
 class MailerUser(models.Model):
@@ -77,15 +80,31 @@ class DomainBlackList(models.Model):
 
 
 # user sent emails
-class UserEmailMessages(models.Model):
+class UserMessage(models.Model):
     """
     Model with user emails
+
     target_email - target email to send message
     text - content of the message
     status - status either send or not
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_messages', default=0)
-    target_email = models.EmailField(max_length=100)
-    email_header = models.CharField(max_length=40, default='Mail from mailsender')
-    text = models.CharField(max_length=256)
-    sent_status = models.BooleanField(default=False)
+    # message template name
+    user_message_name = models.EmailField(max_length=100)
+    # message template description
+    user_message_description = models.EmailField(max_length=500)
+    # message tags
+    user_message_tags = TaggableManager(blank=True)    
+    # message target email
+    user_message_target_email = models.EmailField(max_length=100)
+    # message email title
+    user_message_email_title = models.CharField(max_length=50, default='Mail from mailsender')
+    # message text
+    user_message_text = models.CharField(max_length=500)
+    # message send status
+    user_message_sent_status = models.BooleanField(default=False)
+    # message send datatime
+    user_message_sent_datetime = models.DateTimeField(default=now)
+
+    def get_all_tags(self):
+        return [tag.name for tag in self.user_message_tags.all()]
