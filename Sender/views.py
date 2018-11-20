@@ -270,8 +270,12 @@ class ChangePassword(LoginRequiredMixin, View):
         return redirect('change-password')
 
 
-class SendEmail(View):
+class SendEmail(LoginRequiredMixin, View):
     content = {}
+
+    # redirect if not log in
+    login_url = '/login/'                 
+    redirect_field_name = 'login'
 
     def get(self, request):
         self.content.update({
