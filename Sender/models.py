@@ -59,8 +59,9 @@ class UserEmails(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_emails', default=0, primary_key=True)
     mailer_first_email = models.EmailField(max_length=100, unique=True)
     mailer_first_email_status = models.BooleanField(default=False)
-    mailer_second_email = models.EmailField(max_length=100, unique=True)
+    mailer_second_email = models.EmailField(max_length=100, unique=True, blank=True, null=True)
     mailer_second_email_status = models.BooleanField(default=False)
+    mailer_with_single_email = models.BooleanField(default=False)
 
 
 class DomainBlackList(models.Model):
@@ -73,3 +74,18 @@ class DomainBlackList(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# user sent emails
+class UserEmailMessages(models.Model):
+    """
+    Model with user emails
+    target_email - target email to send message
+    text - content of the message
+    status - status either send or not
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_messages', default=0)
+    target_email = models.EmailField(max_length=100)
+    email_header = models.CharField(max_length=40, default='Mail from mailsender')
+    text = models.CharField(max_length=256)
+    sent_status = models.BooleanField(default=False)

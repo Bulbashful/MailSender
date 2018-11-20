@@ -1,0 +1,38 @@
+
+{% load static %}
+    <link href="{% static "/css/login.css" %}" rel="stylesheet">
+
+<div class="container">
+    <h2 class="form-label">Send email</h2>
+  <div class="row">
+    <div class="col-md">
+    </div>
+    <div class="col-md">
+        <form action="" method="POST" class="form-signin">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ send_form.target_email }}
+            </div>
+            <div class="form-group">
+                {{ send_form.email_header }}
+            </div>
+            <div class="form-group">
+                {{ send_form.text }}
+            </div>
+            <div class="form-group" id="button-submit">
+                <button type="submit" class="btn btn-light">Send</button>
+            </div>
+        </form>
+        <div class="col-md">
+            <form id="form-left" action="{% url 'registration' %}">
+                <input type="submit" class="btn btn-light" value="Registration" />
+            </form>
+            <form id="form-right" action="{% url 'password_reset' %}">
+                <input type="submit" class="btn btn-light" value="Reset password" />
+            </form>
+        </div>
+    </div>
+    <div class="col-md">
+    </div>
+  </div>
+</div>

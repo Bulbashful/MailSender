@@ -17,7 +17,7 @@ class RegisterForm(forms.Form):
     # confirmation password
     password_second = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8,
                                                                         'placeholder': 'Repeat the password',
-                                                                        'class': 'form-control form-control-sm'}),
+                                                                        'class': 'form-control form-control-sm'},),
                                       label='Confirm password')
     # company name
     company_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
@@ -34,7 +34,7 @@ class RegisterForm(forms.Form):
     # second email
     second_email = forms.EmailField(label='Second e-mail', widget=forms.EmailInput(attrs={
         'placeholder': 'Second e-mail (your company domain)',
-        'class': 'form-control form-control-sm'}))
+        'class': 'form-control form-control-sm'}), required=False)
     # contact number
     phone = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-sm',
                                                           'placeholder': 'Contact number'}),
@@ -105,3 +105,17 @@ class ChangePasswordForm(forms.Form):
     new_password = forms.CharField(widget=forms.PasswordInput(attrs={'minlength': 8,
                                                                      'placeholder':'New password - at least 8 characters',
                                                                      'class': 'form-control form-control-sm'}),)
+
+
+class SendEmailForm(forms.Form):
+    # email to send new password
+    target_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
+        'placeholder': 'Enter your email to recovery password',
+        'class': 'form-control form-control-sm'}))
+    email_header = forms.CharField(label='Header', widget=forms.TextInput(attrs={
+        'placeholder': 'Email header',
+        'class': 'form-control form-control-sm'}))
+    text = forms.CharField(label='Second e-mail', widget=forms.Textarea(attrs={
+        'placeholder': 'Message...',
+        'class': 'form-control'}))
+

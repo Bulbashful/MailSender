@@ -13,6 +13,7 @@ urlpatterns = [
 
     # user account
     path('account-settings/', views.AccountSettings.as_view(), name='account-settings'),
+    path('send-email/', views.SendEmail.as_view(), name='send-email'),
     path('change-password/', views.ChangePassword.as_view(), name='change-password'),
 
     # Account activation

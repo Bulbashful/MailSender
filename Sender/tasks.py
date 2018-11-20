@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.core.cache import cache
 from MessageSender.celery import app
+from celery.result import AsyncResult
 
 """
 to run celery use command : 
@@ -21,3 +22,13 @@ def mass_send_mails(source_mail, target_mails, subject, text, link=None):
         html_message=render_to_string('mail_template.html', {'text': text, 'subject': subject, 'link': link}),
         message=text,
     )
+
+# По-ходу бред
+@app.task
+def check_result(task_id, message):
+    task = AsyncResult(task_id)
+    while True:
+        if task.ready():
+            message.sent_status = True
+            message.save()
+            break
