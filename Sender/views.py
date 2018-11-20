@@ -18,10 +18,10 @@ from django.utils.timezone import now
 from django.db import IntegrityError
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, DomainBlackList, UserEmails, MailerUser
-from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm
+from .models import User, DomainBlackList, UserEmails, MailerUser, UserEmailMessages
+from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm, SendEmailForm
 
-from .tasks import mass_send_mails
+from .tasks import mass_send_mails, check_result
 
 
 # home page
@@ -178,7 +178,7 @@ class AccountSettings(LoginRequiredMixin, View):
         return redirect('account-settings')
 
     def get(self, request):
-        user, data = self.get_user_with_init()
+        user, data = self.__get_user_with_init()
         self.content.update({
             'doc': 'user_account.html',
             'title': 'Account Settings',
@@ -256,7 +256,7 @@ class ChangePassword(LoginRequiredMixin, View):
                 self.request.user.set_password(form.cleaned_data['new_password'])
                 # save user profile
                 self.request.user.save()
-                # send mail notofication
+                # send mail notification
                 mass_send_mails.delay(target_mails=self.request.user.user_emails.mailer_first_email,
                                       source_mail=settings.EMAIL_HOST_USER,
                                       text=f'Password has changed successfully',
@@ -270,6 +270,37 @@ class ChangePassword(LoginRequiredMixin, View):
         return redirect('change-password')
 
 
+class SendEmail(View):
+    content = {}
+
+    def get(self, request):
+        self.content.update({
+            'doc': 'forms/send_email.html',
+            'send_form': SendEmailForm(),
+            'title': 'Send email',
+        })
+        return render(request, 'base.html', self.content)
+
+    def post(self, request):
+        form = SendEmailForm(request.POST)
+        if form.is_valid():
+            try:
+                message = UserEmailMessages.objects.create(user=self.request.user, **form.cleaned_data)
+                # send mail notification
+                task = mass_send_mails.delay(target_mails=form.cleaned_data['target_email'],
+                                             source_mail=settings.EMAIL_HOST_USER,
+                                             text=form.cleaned_data['text'],
+                                             subject=form.cleaned_data['email_header'])
+                # acync check result
+                check_result(task.task_id, message)
+                messages.add_message(request, messages.SUCCESS, "Mail have been sent")
+            except Exception as err:
+                messages.add_message(request, messages.ERROR, "Something happen wrong")
+        else:
+            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
+        return redirect('send-email')
+
+
 # mail verification
 class MailVerify(View):
     content = {}
@@ -278,45 +309,69 @@ class MailVerify(View):
         try:
             # user instance
             user = User.objects.get(id=id)
-            # user email instance
-            user_emails = UserEmails.objects.get(user=user)
+            register_state = user.user_emails.mailer_with_single_email
+            # case when user registered with two emails
+            if not register_state:
+                # first email address
+                first_email = user.user_emails.mailer_first_email
+                # first email address status
+                first_email_status = user.user_emails.mailer_first_email_status
+                # second email address
+                second_email = user.user_emails.mailer_second_email
+                # second  email address status
+                second_email_status = user.user_emails.mailer_second_email_status
 
-            # first email address
-            first_email = user_emails.mailer_first_email
-            # first email address status
-            first_email_status = user_emails.mailer_first_email_status
-            # second email address
-            second_email = user_emails.mailer_second_email
-            # second  email address status
-            second_email_status = user_emails.mailer_second_email_status
+                # hash stings according user's emails
+                first_user_account_hash = hashlib.sha224(str(user.username + first_email).encode()).hexdigest()
+                second_user_account_hash = hashlib.sha224(str(user.username + second_email).encode()).hexdigest()
 
-            # hash stings according user's emails
-            first_user_account_hash = hashlib.sha224(str(user.username + first_email).encode()).hexdigest()
-            second_user_account_hash = hashlib.sha224(str(user.username + second_email).encode()).hexdigest()
+                # call function that compare hash string and action code
+                first_email_state = check_email(request, activation_string, first_user_account_hash, first_email_status, user)
+                second_email_state = check_email(request, activation_string, second_user_account_hash, second_email_status, user)
 
-            # call function that compare hash string and action code
-            first_email_state = check_email(request, activation_string, first_user_account_hash, first_email_status, user)
-            second_email_state = check_email(request, activation_string, second_user_account_hash, second_email_status, user)
+                # verify user email according of check_email() result
+                if first_email_state:
+                    user.user_emails.mailer_first_email_status = True
+                elif second_email_state:
+                    user.user_emails.mailer_second_email_status = True
+                # if user trying verify verified email
+                else:
+                    messages.add_message(request, messages.WARNING, 'Your email confirmed already')
 
-            # verify user email according of check_email() result
-            if first_email_state:
-                user_emails.mailer_first_email_status = True
-            elif second_email_state:
-                user_emails.mailer_second_email_status = True
-            # if user trying verify verified email
+                # compares if emails verified. If true user setting is active and mailer user is setting 'emails
+                # confirmed status
+                if user.user_emails.mailer_first_email_status and user.user_emails.mailer_second_email_status:
+                    mailer_user = MailerUser.objects.get(mailer_user=user)
+                    mailer_user.mailer_user_status = mailer_user.mail_confirmed_user
+                    user.is_active = True
+                    user.save()
+                    mailer_user.save()
+                    messages.add_message(request, messages.SUCCESS, 'All your emails confirmed successfully')
+                user.user_emails.save()
+            # case when user registered with one email
             else:
-                messages.add_message(request, messages.WARNING, 'Your email confirmed already')
+                # first email address
+                first_email = user.user_emails.mailer_first_email
+                # first email address status
+                first_email_status = user.user_emails.mailer_first_email_status
+                # hash sting according user first  emails
+                first_user_account_hash = hashlib.sha224(str(user.username + first_email).encode()).hexdigest()
 
-            # compares if emails verified. If true user setting is active and mailer user is setting 'emails
-            # confirmed status
-            if user_emails.mailer_first_email_status and user_emails.mailer_second_email_status:
-                mailer_user = MailerUser.objects.get(mailer_user=user)
-                mailer_user.mailer_user_status = mailer_user.mail_confirmed_user
-                user.is_active = True
-                user.save()
-                mailer_user.save()
-                messages.add_message(request, messages.SUCCESS, 'All your emails confirmed successfully')
-            user_emails.save()
+                # call function that compare hash string and action code
+                first_email_state = check_email(request, activation_string, first_user_account_hash, first_email_status,
+                                                user)
+                # verify user email according of check_email() result
+                if first_email_state:
+                    user.user_emails.mailer_first_email_status = True
+                    user.user_account.mailer_user_status = "MCN"
+                    user.is_active = True
+                    user.user_emails.save()
+                    user.user_account.save()
+                    user.save()
+                    messages.add_message(request, messages.SUCCESS, 'Your email confirmed successfully')
+                # if user trying verify verified email
+                else:
+                    messages.add_message(request, messages.WARNING, 'Your email confirmed already')
         except:
             messages.add_message(request, messages.ERROR, 'Error while account activation')
 
@@ -354,7 +409,7 @@ class LoginPage(View):
                     # login if all ok
                     else:
                         login(request, user)
-                        return redirect('home')
+                        return redirect('send-email')
                 else:
                     messages.add_message(request, messages.ERROR, 'Invalid username or password')
             else:
@@ -390,14 +445,18 @@ class RegistrationPage(View):
     def post(self, request):
         # parse registration form
         register_form = RegisterForm(request.POST)
-
         # password and emails fields from form
         password_first = request.POST['password_first']
         password_second = request.POST['password_second']
         first_email = request.POST['first_email']
         second_email = request.POST['second_email']
         # call function to check input part of data
-        check_credentials = check_registration_credentials(request, password_first, password_second, first_email, second_email)
+
+        if second_email == '':
+            check_credentials = check_registration_credentials(request, password_first, password_second, first_email)
+        else:
+            check_credentials = check_registration_credentials(request, password_first, password_second, first_email,
+                                                               second_email)
 
         if register_form.is_valid() and check_credentials:
 
@@ -414,9 +473,14 @@ class RegistrationPage(View):
                                                         mailer_company_industry=register_form.cleaned_data['industry'],
                                                         mailer_company_website=register_form.cleaned_data['website'])
                 # create user's emails
+                second_email = register_form.cleaned_data['second_email']
+
                 user_emails = UserEmails.objects.create(user=new_user,
                                                         mailer_first_email=register_form.cleaned_data['first_email'],
-                                                        mailer_second_email=register_form.cleaned_data['second_email'])
+                                                        mailer_second_email=second_email)
+
+                # sorry; add true state if user register with one email
+                user_emails.mailer_with_single_email = True if second_email == '' else False
 
                 first_link = f'http://{request.get_host()}/activation/{new_user.id}/' \
                     f'{hashlib.sha224(str(new_user.username + user_emails.mailer_first_email).encode()).hexdigest()}'
@@ -424,11 +488,12 @@ class RegistrationPage(View):
                     f'{hashlib.sha224(str(new_user.username + user_emails.mailer_second_email).encode()).hexdigest()}'
 
                 # create activation links dictionary. Key - emails, value - activation link
-                links = {}
-                links.update({
-                    user_emails.mailer_first_email: first_link,
-                    user_emails.mailer_second_email: second_link,
-                })
+                links = {user_emails.mailer_first_email: first_link}
+                # form contain second_email
+                if second_email != '':
+                    links.update({
+                        user_emails.mailer_second_email: second_link,
+                    })
                 mailer_user.save()
                 user_emails.save()
 
@@ -448,7 +513,8 @@ class RegistrationPage(View):
                 messages.add_message(request, messages.SUCCESS, "You successfully registered! Check your mail!")
                 return redirect('home')
 
-            except:
+            except Exception as err:
+                print(err)
                 # if some error while user creation or message sending
                 messages.add_message(request, messages.WARNING,
                                      "Can't create account, some error happened. Write to admins.")
@@ -501,7 +567,8 @@ class PasswordRecovery(View):
 
 
 # check identity password and that emails are various
-def check_registration_credentials(request, password_first: str, password_second: str, first_email: str, second_email: str):
+def check_registration_credentials(request, password_first: str, password_second: str, first_email: str,
+                                   second_email: str=None):
     """
     Function check passwords(must be similar) and email(must be not similar and not contain domains from DomainBlackList)
 
@@ -520,15 +587,16 @@ def check_registration_credentials(request, password_first: str, password_second
     if password_first != password_second:
         messages.add_message(request, messages.WARNING, "Passwords not similar")
         return False
-    # check meail on identity
-    if first_email == second_email:
-        messages.add_message(request, messages.WARNING, "Email's are similar")
-        return False
+    # check emails on identity if function takes second_email
+    if first_email and first_email == second_email:
+            messages.add_message(request, messages.WARNING, "Email's are similar")
+            return False
 
     # first_email_domain and  second_email_domain contains clear domain: gmail, yandex and etc.
     first_email_domain = get_domain_pattern.findall(first_email)
-    second_email_domain = get_domain_pattern.findall(second_email)
-    # domain_result contain query result, if two email not it black list then domain_result is 0
+    # check second email if function takes it
+    second_email_domain = get_domain_pattern.findall(second_email) if second_email else None
+    # domain_result contain query result, if two email not in black list then domain_result is 0
     domain_result = DomainBlackList.objects.filter(Q(name=first_email_domain) | Q(name=second_email_domain)).first()
 
     if domain_result:
