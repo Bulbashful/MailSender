@@ -12,10 +12,28 @@
                   <p class="nav-link"> Hi, {{ user }}</p>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link js-scroll-trigger" href="{% url 'account-settings' %}">Account settings</a>
+
+                  <div class="dropdown">
+                    <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownDashboardMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Dashboard
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownDashboardMenu">
+                      <a class="dropdown-item" href="{% url 'send-email' %}">Campaigns</a>
+                      <a class="dropdown-item" href="{% url 'send-email' %}">Results</a>
+                      <a class="dropdown-item" href="{% url 'send-email' %}">Settings</a>
+                    </div>
+                  </div>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link js-scroll-trigger" href="{% url 'change-password' %}">Change Password</a>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-dark dropdown-toggle" type="button" id="dropdownSettingsMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Settings
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownSettingsMenu">
+                      <a class="dropdown-item" href="{% url 'account-settings' %}">Account settings</a>
+                      <a class="dropdown-item" href="{% url 'change-password' %}">Change Password</a>
+                    </div>
+                  </div>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link js-scroll-trigger" href="{% url 'logout' %}">Log out</a>
