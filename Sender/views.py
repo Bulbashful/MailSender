@@ -18,10 +18,10 @@ from django.utils.timezone import now
 from django.db import IntegrityError
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, DomainBlackList, UserEmails, MailerUser, UserEmailMessages
+from .models import User, DomainBlackList, UserEmails, MailerUser, UserMessage
 from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm, SendEmailForm
 
-from .tasks import mass_send_mails, check_result
+from .tasks import mass_send_mails, user_send_mail
 
 
 # home page
@@ -289,14 +289,22 @@ class SendEmail(LoginRequiredMixin, View):
         form = SendEmailForm(request.POST)
         if form.is_valid():
             try:
-                message = UserEmailMessages.objects.create(user=self.request.user, **form.cleaned_data)
-                # send mail notification
-                task = mass_send_mails.delay(target_mails=form.cleaned_data['target_email'],
-                                             source_mail=settings.EMAIL_HOST_USER,
-                                             text=form.cleaned_data['text'],
-                                             subject=form.cleaned_data['email_header'])
-                # acync check result
-                check_result(task.task_id, message)
+                # create new message object in DB
+                message = UserMessage.objects.create(user=request.user,
+                                                     user_message_name=form.cleaned_data['user_message_tags'],
+                                                     user_message_description=form.cleaned_data['user_message_description'],
+                                                     user_message_target_email=form.cleaned_data['user_message_target_email'],
+                                                     user_message_email_title=form.cleaned_data['user_message_email_title'],
+                                                     user_message_text=form.cleaned_data['user_message_text'])
+
+                # set message tags
+                for tag in form.cleaned_data['user_message_tags'].split(','):
+                    message.user_message_tags.add(tag.lower().strip())
+                # send user message
+                user_send_mail.delay(target_mail=form.cleaned_data['target_email'],
+                                     text=form.cleaned_data['text'],
+                                     subject=form.cleaned_data['email_header'],
+                                     message_id=message.id)
                 messages.add_message(request, messages.SUCCESS, "Mail have been sent")
             except Exception as err:
                 messages.add_message(request, messages.ERROR, "Something happen wrong")
