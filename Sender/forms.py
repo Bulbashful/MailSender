@@ -108,14 +108,29 @@ class ChangePasswordForm(forms.Form):
 
 
 class SendEmailForm(forms.Form):
-    # email to send new password
-    target_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
-        'placeholder': 'Enter your email to recovery password',
-        'class': 'form-control form-control-sm'}))
-    email_header = forms.CharField(label='Header', widget=forms.TextInput(attrs={
-        'placeholder': 'Email header',
-        'class': 'form-control form-control-sm'}))
-    text = forms.CharField(label='Second e-mail', widget=forms.Textarea(attrs={
-        'placeholder': 'Message...',
-        'class': 'form-control'}))
+    user_message_name = forms.CharField(label='Second e-mail', max_length=500, widget=forms.TextInput(attrs={
+                                                                                                'placeholder': 'Message name',
+                                                                                                'class': 'form-control',
+                                                                                               }))
+    user_message_description = forms.CharField(label='Second e-mail', max_length=500, widget=forms.Textarea(attrs={
+                                                                                                'placeholder': 'Message description',
+                                                                                                'class': 'form-control',
+                                                                                               }))
+    user_message_tags = forms.CharField(label='Second e-mail', max_length=50, widget=forms.TextInput(attrs={
+                                                                                                'placeholder': 'Tags',
+                                                                                                'class': 'form-control',
+                                                                                               }))                                                                                                                                                                                              
+    # email to send message
+    user_message_target_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
+                                                                                    'placeholder': 'Enter user email',
+                                                                                    'class': 'form-control form-control-sm'
+                                                                                   }))
+    user_message_email_title = forms.CharField(label='Title', max_length=50, widget=forms.TextInput(attrs={
+                                                                                                'placeholder': 'Email title',
+                                                                                                'class': 'form-control form-control-sm'
+                                                                                                }))
+    user_message_text = forms.CharField(label='Second e-mail', max_length=500, widget=forms.Textarea(attrs={
+                                                                                                'placeholder': 'Email text',
+                                                                                                'class': 'form-control',
+                                                                                               }))
 
