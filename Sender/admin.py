@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MailerUser, UserEmails, DomainBlackList, UserEmailMessages
+from .models import MailerUser, UserEmails, DomainBlackList, UserMessage
 
 
 class MailerUserAdmin(admin.ModelAdmin):
@@ -10,4 +10,4 @@ class MailerUserAdmin(admin.ModelAdmin):
 admin.site.register(MailerUser, MailerUserAdmin)
 admin.site.register(UserEmails)
 admin.site.register(DomainBlackList)
-admin.site.register(UserEmailMessages)
+admin.site.register(UserMessage)
