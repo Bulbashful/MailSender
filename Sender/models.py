@@ -107,7 +107,17 @@ class UserMessage(models.Model):
     user_message_sent_datetime = models.DateTimeField(default=now)
 
     def get_short_description(self):
+        """
+        Get short(<50) message description text
+        """
         return self.user_message_description if len(self.user_message_description) < 50 else self.user_message_description[:50] + ' ...'
 
     def get_all_tags(self):
+        """
+        Get list of message tag's
+        """
         return [tag.name for tag in self.user_message_tags.all()]
+
+    def __str__(self):
+            return f'Author: {self.user.username}; Name: {self.user_message_name}'
+            
