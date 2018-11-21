@@ -134,3 +134,9 @@ class SendEmailForm(forms.Form):
                                                                                                 'class': 'form-control',
                                                                                                }))
 
+class CampaignsSearchForm(forms.Form):
+    campaign_search = forms.CharField(label='Search', max_length=150, widget=forms.TextInput(attrs={
+                                                                                                'placeholder': 'Search request',
+                                                                                                'class': 'form-control'
+                                                                                            }))
+ 
