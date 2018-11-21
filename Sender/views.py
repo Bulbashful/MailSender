@@ -235,7 +235,7 @@ class AccountSettings(LoginRequiredMixin, View):
 
         return redirect('account-settings')
 
-
+# change password page
 class ChangePassword(LoginRequiredMixin, View):
     content = {}
 
@@ -275,7 +275,7 @@ class ChangePassword(LoginRequiredMixin, View):
             messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
         return redirect('change-password')
 
-
+# view with already created campaign and sended email
 class SendEmailView(LoginRequiredMixin, View):
     content = {}
 
@@ -356,7 +356,7 @@ class SendEmailView(LoginRequiredMixin, View):
              form.changed_data]
         message.save()
 
-
+# view with list of created campaigns
 class SendEmailResults(LoginRequiredMixin, View):
     """
     List of Campaigns
@@ -400,7 +400,7 @@ class SendEmailResults(LoginRequiredMixin, View):
             campaign_filtered_by_tag = campaign_filtered_by_user.filter(campaign_tags__name__in = [tag])
 
             self.content.update({'sended_messages': campaign_filtered_by_tag})
-            
+
         # if user send search request
         elif search_form.is_valid():
             # get search request from form
@@ -438,7 +438,7 @@ class SendEmailResults(LoginRequiredMixin, View):
             
         return searched_campaigns
 
-
+# view with creating campaign form and send mail 
 class SendEmail(LoginRequiredMixin, View):
     content = {}
 
