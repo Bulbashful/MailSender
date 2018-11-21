@@ -18,6 +18,10 @@ urlpatterns = [
 
     # user messages
     path('send-email/', views.SendEmail.as_view(), name='send-email'),
+    # view user sended messages by ID
+    path('view-email/id-<int:mail_id>/', views.SendEmailView.as_view(), name='view-email'),
+    # view message send results
+    path('result-emails/', views.SendEmailResults.as_view(), name='send-email-result'),
     # Account activation
     path('activation/<int:id>/<slug:activation_string>/', views.MailVerify.as_view(), name='account_activation'),
 

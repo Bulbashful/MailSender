@@ -270,6 +270,30 @@ class ChangePassword(LoginRequiredMixin, View):
         return redirect('change-password')
 
 
+class SendEmailResults(LoginRequiredMixin, View):
+    content = {}
+
+    # redirect if not log in
+    login_url = '/login/'                 
+    redirect_field_name = 'login'
+
+    def get(self, request, tag: str = None):
+        print(tag)
+        self.content.update({
+            'doc': 'send_email_results.html',
+            'title': 'Send email results',
+        })
+        # if user send tag
+        if tag:
+            sended_messages = UserMessage.objects.filter(user_message_tags__name__in = [tag])
+        else:
+            sended_messages = UserMessage.objects.filter(user=request.user)
+
+        self.content.update({'sended_messages': sended_messages})
+
+        return render(request, 'base.html', self.content)
+
+
 class SendEmail(LoginRequiredMixin, View):
     content = {}
 

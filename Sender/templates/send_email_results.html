@@ -1,0 +1,30 @@
+
+{% load static %}
+    <link href="{% static "/css/login.css" %}" rel="stylesheet">
+
+<div class="container">
+    <h2 class="form-label">Send email results</h2>
+  <div class="row">
+    <div class="col-md">
+    </div>
+    <div class="col-md">
+        {% for sended_message in sended_messages %}
+            <strong>Email name</strong>:
+                <a href="{% url 'view-email' sended_message.id %}">{{sended_message.user_message_name}}</a> 
+            <br>
+            <strong>Email description</strong>: {{sended_message.get_short_description}}
+            <br>
+            <strong>Email tags</strong>: 
+            {% for tag in  sended_message.get_all_tags %}
+
+                <a href="{% url 'send-email-result' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
+
+            {% endfor %}
+            
+            <hr>
+        {% endfor %}
+    </div>
+    <div class="col-md">
+    </div>
+  </div>
+</div>
