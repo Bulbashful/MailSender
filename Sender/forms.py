@@ -107,29 +107,29 @@ class ChangePasswordForm(forms.Form):
                                                                      'class': 'form-control form-control-sm'}),)
 
 
-class SendEmailForm(forms.Form):
-    user_message_name = forms.CharField(label='Second e-mail', max_length=500, widget=forms.TextInput(attrs={
-                                                                                                'placeholder': 'Message name',
+class CampaignForm(forms.Form):
+    campaign_name = forms.CharField(label='Second e-mail', max_length=500, widget=forms.TextInput(attrs={
+                                                                                                'placeholder': 'Campaign name',
                                                                                                 'class': 'form-control',
                                                                                                }))
-    user_message_description = forms.CharField(label='Second e-mail', max_length=500, widget=forms.Textarea(attrs={
-                                                                                                'placeholder': 'Message description',
+    campaign_description = forms.CharField(label='Second e-mail', max_length=500, widget=forms.Textarea(attrs={
+                                                                                                'placeholder': 'Campaign description',
                                                                                                 'class': 'form-control',
                                                                                                }))
-    user_message_tags = forms.CharField(label='Second e-mail', max_length=50, widget=forms.TextInput(attrs={
-                                                                                                'placeholder': 'Tags',
+    campaign_tags = forms.CharField(label='Second e-mail', max_length=50, widget=forms.TextInput(attrs={
+                                                                                                'placeholder': 'Campaign tags',
                                                                                                 'class': 'form-control',
                                                                                                }))                                                                                                                                                                                              
     # email to send message
-    user_message_target_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
+    campaign_target_email = forms.EmailField(label='E-mail', widget=forms.EmailInput(attrs={
                                                                                     'placeholder': 'Enter user email',
                                                                                     'class': 'form-control form-control-sm'
                                                                                    }))
-    user_message_email_title = forms.CharField(label='Title', max_length=50, widget=forms.TextInput(attrs={
+    campaign_email_title = forms.CharField(label='Title', max_length=50, widget=forms.TextInput(attrs={
                                                                                                 'placeholder': 'Email title',
                                                                                                 'class': 'form-control form-control-sm'
                                                                                                 }))
-    user_message_text = forms.CharField(label='Second e-mail', max_length=500, widget=forms.Textarea(attrs={
+    campaign_text = forms.CharField(label='Second e-mail', max_length=500, widget=forms.Textarea(attrs={
                                                                                                 'placeholder': 'Email text',
                                                                                                 'class': 'form-control',
                                                                                                }))
