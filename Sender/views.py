@@ -302,6 +302,42 @@ class SendEmailView(LoginRequiredMixin, View):
 
             return redirect('home')
 
+    def post(self, request, mail_id: int):
+        message = Campaign.objects.get(id=mail_id)
+        form = CampaignForm(request.POST, initial=self.__form_init(message))
+
+        if form.is_valid() and message.user == self.request.user:
+            # case to save and send message
+            if 'send' in request.POST:
+                self.save_message(message, form)
+                user_send_mail.delay(target_mail=form.cleaned_data['campaign_target_email'],
+                                     text=form.cleaned_data['campaign_text'],
+                                     subject=form.cleaned_data['campaign_email_title'],
+                                     message_id=message.id)
+                messages.add_message(request, messages.SUCCESS, "Mail has been sent")
+            # case to save message
+            elif 'save' in request.POST:
+                self.save_message(message, form)
+                messages.add_message(request, messages.SUCCESS, "Message has been save")
+            # case to add cometn to message
+            elif 'comment' in request.POST:
+                self.save_message(message, form)
+                messages.add_message(request, messages.SUCCESS, "Message has been save")
+        else:
+            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
+        return redirect(f'/view-campaign/id-{mail_id}')
+
+    def __form_init(self, message):
+        data = {'campaign_name': message.campaign_name,
+                'campaign_description': message.campaign_description,
+                # join used to refactor tag's view in field
+                'campaign_tags': ', '.join(message.get_all_tags()),
+                'campaign_target_email': message.campaign_target_email,
+                'campaign_email_title': message.campaign_email_title,
+                'campaign_text': message.campaign_text,
+                }
+        return data
+
     # function to save changed data of form
     def save_message(self, message, form):
         # form contains tags
