@@ -332,7 +332,7 @@ class SendEmail(LoginRequiredMixin, View):
 
     def get(self, request):
         self.content.update({
-            'doc': 'forms/send_email.html',
+            'doc': 'send_email.html',
             'send_form': SendEmailForm(),
             'title': 'Send email',
         })
@@ -344,7 +344,7 @@ class SendEmail(LoginRequiredMixin, View):
             try:
                 # create new message object in DB
                 message = UserMessage.objects.create(user=request.user,
-                                                     user_message_name=form.cleaned_data['user_message_tags'],
+                                                     user_message_name=form.cleaned_data['user_message_name'],
                                                      user_message_description=form.cleaned_data['user_message_description'],
                                                      user_message_target_email=form.cleaned_data['user_message_target_email'],
                                                      user_message_email_title=form.cleaned_data['user_message_email_title'],
@@ -354,12 +354,13 @@ class SendEmail(LoginRequiredMixin, View):
                 for tag in form.cleaned_data['user_message_tags'].split(','):
                     message.user_message_tags.add(tag.lower().strip())
                 # send user message
-                user_send_mail.delay(target_mail=form.cleaned_data['target_email'],
-                                     text=form.cleaned_data['text'],
-                                     subject=form.cleaned_data['email_header'],
+                user_send_mail.delay(target_mail=form.cleaned_data['user_message_target_email'],
+                                     text=form.cleaned_data['user_message_text'],
+                                     subject=form.cleaned_data['user_message_email_title'],
                                      message_id=message.id)
                 messages.add_message(request, messages.SUCCESS, "Mail have been sent")
             except Exception as err:
+                print(err)
                 messages.add_message(request, messages.ERROR, "Something happen wrong")
         else:
             messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
