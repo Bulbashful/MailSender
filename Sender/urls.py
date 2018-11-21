@@ -16,7 +16,7 @@ urlpatterns = [
     path('change-password/', views.ChangePassword.as_view(), name='change-password'),
 
     # user messages
-    path('send-email/', views.SendEmail.as_view(), name='send-email'),
+    path('campaigns/', views.SendEmail.as_view(), name='campaigns'),
     # view user sended messages by ID
     path('view-email/id-<int:mail_id>/', views.SendEmailView.as_view(), name='view-email'),
     # view message send results
