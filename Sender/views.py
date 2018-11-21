@@ -58,7 +58,7 @@ class AccountSettings(LoginRequiredMixin, View):
     # convert fields to present view for email
     def __present_string_format(self, fields: list):
         # make from changed fileds list - string separated by coma
-        return ' ,'.join([self.fields_format[field] for field in fields])
+        return ', '.join([self.fields_format[field] for field in fields])
 
     # return user object and init dict
     def __get_user_with_init(self):
@@ -105,9 +105,11 @@ class AccountSettings(LoginRequiredMixin, View):
         if 'mailer_user' in changed_fields:
             self.__if_change_username(user, changed_form.cleaned_data['mailer_user'])
             changed_fields.remove('mailer_user')
-        
+                
         # case when form contain one email
         if email_num:
+            # save user old email to inform him
+            old_email = getattr(user.user_emails, email_num)
             # set new email from change list
             user.user_emails.email_num = changed_form.cleaned_data[email_num]
             # delete this email from change list
@@ -119,39 +121,51 @@ class AccountSettings(LoginRequiredMixin, View):
             setattr(user.user_emails, email_num, changed_form.cleaned_data[email_num])
             # set UserEmails user changed mail status as not activated
             setattr(user.user_emails, email_num + '_status', False)
-            # set MailerUser user mailer_user_status as `Not confirmed mail`
-            setattr(user.user_account, 'mailer_user_status', "NCN")
-            # set User user status as `is_active=False`
-            setattr(user, 'is_active', False)
-
-            # save new data
-            user.save()
-            user.user_emails.save()
-            
-            # unchanged user email to inform user about changed fields
-            unchanged_email = getattr(user.user_emails, 'mailer_first_email' if email_num == 'mailer_second_email' else
-                                                                                                'mailer_second_email')
 
             # new hash
             link = f'http://{self.request.get_host()}/activation/{user.id}/' \
                           f'{hashlib.sha224(str(user.username + changed_form.cleaned_data[email_num]).encode()).hexdigest()}'
 
-            # dict contains info about new email to send end info of changed info to send to second email
+            # dict contains info about new email to send and info of changed to send it to old email
             emails = {'new_email_to_validate': [
                                                     changed_form.cleaned_data[email_num], 
                                                     'Confirm please your email', 
                                                     'Mail confirmation', 
                                                     link
                                                 ],
-                      'second_email_with_info': [
-                                                    unchanged_email, 
+                      'old_email_with_info': [
+                                                    old_email, 
                                                     f'Changed: {changed_fields_string};', 
                                                     'Changed fields', 
                                                     None
                                                 ]
                     }
+            # if user delete second mail
+            if not changed_form.cleaned_data[email_num] and email_num=='mailer_second_email':
+                # delete new email key
+                del emails['new_email_to_validate']
+                # set user_emails status mailer_with_single_email to True
+                user.user_emails.mailer_with_single_email = True
+                # set user second mail status to False
+                user.user_emails.mailer_second_email_status = False
+
+            # if user add mailer_second_email
+            elif user.user_emails.mailer_with_single_email:
+                del emails['old_email_with_info']
+                user.user_emails.mailer_with_single_email = False
+                # set MailerUser user mailer_user_status as `Not confirmed mail`
+                setattr(user.user_account, 'mailer_user_status', MailerUser.not_confirmed_user)
+                # set User user status as `is_active=False`
+                setattr(user, 'is_active', False)
+            # if user change mail
+            else:
+                # set MailerUser user mailer_user_status as `Not confirmed mail`
+                setattr(user.user_account, 'mailer_user_status', MailerUser.not_confirmed_user)
+                # set User user status as `is_active=False`
+                setattr(user, 'is_active', False)
 
 
+            #return redirect('account-settings')
             for email in emails:
                 mass_send_mails.delay(
                     source_mail=settings.EMAIL_HOST_USER,
@@ -163,9 +177,8 @@ class AccountSettings(LoginRequiredMixin, View):
             logout(self.request)
         # case when form contains two emails or none
         else:
-
+            # update user data
             [setattr(user.user_account, changed_attr, changed_form.cleaned_data[changed_attr]) for changed_attr in changed_fields]
-
 
             mass_send_mails.delay(
                 source_mail=settings.EMAIL_HOST_USER,
@@ -173,6 +186,9 @@ class AccountSettings(LoginRequiredMixin, View):
                 text=f'Changed: {changed_fields_string};',
                 subject='Change some fields')
 
+        # save new data
+        user.save()
+        user.user_emails.save()
         user.user_account.save()
 
         return redirect('account-settings')
@@ -196,36 +212,25 @@ class AccountSettings(LoginRequiredMixin, View):
                                                             password_first='',
                                                             password_second='',
                                                             first_email = request.POST['mailer_first_email'],
-                                                            second_email = request.POST['mailer_second_email'])
+                                                            second_email = request.POST.get('mailer_second_email'))
 
         if changed_form.has_changed() and changed_form.is_valid() and email_check_result:
             # get list of changed fields
             changed_fields = changed_form.changed_data
             
-            # if user try change two emails
-            if 'mailer_first_email' in changed_fields and 'mailer_second_email' in changed_fields:
-                messages.add_message(request, messages.ERROR, "You can change only one email")
-                # remove two email from change list
-                changed_fields.remove('mailer_first_email')
-                changed_fields.remove('mailer_second_email')
-
-                messages.add_message(request, messages.ERROR, "Emails not changed")
-
-                self.save_model_and_send_email(user, changed_form, changed_fields)
-
-            else:
+            if 'mailer_first_email' in changed_fields or 'mailer_second_email' in changed_fields:
                 if 'mailer_first_email' in changed_fields:
                     self.save_model_and_send_email(user, changed_form, changed_fields, 'mailer_first_email')
                 
-                elif 'mailer_second_email' in changed_fields:
+                if 'mailer_second_email' in changed_fields:
                     self.save_model_and_send_email(user, changed_form, changed_fields, 'mailer_second_email')
                 
-                else:
-                    self.save_model_and_send_email(user, changed_form, changed_fields)
+            else:
+                self.save_model_and_send_email(user, changed_form, changed_fields)
                 
-                messages.add_message(request, messages.SUCCESS, "Form successfully changed")
+            messages.add_message(request, messages.SUCCESS, "Form successfully changed")
         else:
-            messages.add_message(request, messages.WARNING, "Form not changed")
+            messages.add_message(request, messages.ERROR, "Form not changed")
 
         return redirect('account-settings')
 
@@ -307,7 +312,6 @@ class SendEmailResults(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     def get(self, request, tag: str = None):
-        print(tag)
         self.content.update({
             'doc': 'send_email_results.html',
             'title': 'Send email results',

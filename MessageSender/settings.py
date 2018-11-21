@@ -137,6 +137,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = ['Sender/static']
 MEDIA_ROOT = '/media/'
 MEDIA_URL = '/media/'
+STATIC_ROOT = 'static'
 
 # TODO on production
 # SESSION_COOKIE_AGE = 2*3600

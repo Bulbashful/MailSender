@@ -45,6 +45,9 @@ class MailerUser(models.Model):
                                           default=not_confirmed_user,
                                           verbose_name='user status')
 
+    class Meta:
+        verbose_name_plural = 'Users List'
+
     def __str__(self):
         return f'User: {self.mailer_user.username}; User status: {self.get_mailer_user_status_display()};'
 
@@ -58,14 +61,23 @@ class UserEmails(models.Model):
     mailer_first_email_status - first email status of verification (True - verified, False - not)
     mailer_second_email - user's second email
     mailer_second_email_status - second email status of verification (True - verified, False - not)
+    mailer_with_single_email - if user check only one email
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_emails', default=0, primary_key=True)
+
     mailer_first_email = models.EmailField(max_length=100, unique=True)
     mailer_first_email_status = models.BooleanField(default=False)
-    mailer_second_email = models.EmailField(max_length=100, unique=True, blank=True, null=True)
-    mailer_second_email_status = models.BooleanField(default=False)
-    mailer_with_single_email = models.BooleanField(default=False)
 
+    mailer_second_email = models.EmailField(max_length=100, unique=False, blank=True, null=True)
+    mailer_second_email_status = models.BooleanField(default=False)
+
+    mailer_with_single_email = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name_plural = 'Users Emails List'
+    
+    def __str__(self):
+        return f'User: {self.user.username}; Mail: {self.mailer_first_email}'
 
 class DomainBlackList(models.Model):
     """
@@ -74,6 +86,9 @@ class DomainBlackList(models.Model):
     name - domain that don't satisfy requirements
     """
     name = models.CharField(max_length=60)
+
+    class Meta:
+        verbose_name_plural = 'Domains Black List'
 
     def __str__(self):
         return self.name
@@ -105,6 +120,9 @@ class UserMessage(models.Model):
     user_message_sent_status = models.BooleanField(default=False)
     # message send datatime
     user_message_sent_datetime = models.DateTimeField(default=now)
+
+    class Meta:
+        verbose_name_plural = 'Users Messages'
 
     def get_short_description(self):
         """
