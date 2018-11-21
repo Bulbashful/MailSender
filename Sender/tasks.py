@@ -51,8 +51,8 @@ def user_send_mail(target_mail, subject, text, message_id):
             html_message=render_to_string('mail_template.html', {'text': text, 'subject': subject,}),
             message=text,
         )
-        # after success sending - change `sent_status` to True
-        message.sent_status = True
+        # after success sending - change `user_message_sent_status` to True
+        message.user_message_sent_status = True
         message.save()
     
     except Exception as err:
