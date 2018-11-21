@@ -12,14 +12,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import logout, login, authenticate
 from django.conf import settings
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 from django.utils.timezone import now
 from django.db import IntegrityError
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, DomainBlackList, Campaigns, MailerUser, UserMessage
-from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm, SendEmailForm
+from .models import User, DomainBlackList, UserEmails, MailerUser, Campaign
+from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm, CampaignForm, CampaignsSearchForm
 
 from .tasks import mass_send_mails, user_send_mail
 
@@ -282,28 +283,17 @@ class SendEmailView(LoginRequiredMixin, View):
     login_url = '/login/'                 
     redirect_field_name = 'login'
 
-    def __form_init(self, message):
-        data = {'user_message_name': message.user_message_name,
-                'user_message_description': message.user_message_description,
-                # join used to refactor tag's view in field
-                'user_message_tags': ', '.join(message.get_all_tags()),
-                'user_message_target_email': message.user_message_target_email,
-                'user_message_email_title': message.user_message_email_title,
-                'user_message_text': message.user_message_text,
-                }
-        return data
-
     def get(self, request, mail_id: int):
 
         self.content.update({
-            'doc': 'sended_email_view.html',
+            'doc': 'sended_campaigns_view.html',
             'title': 'Send email view',
         })
 
-        message = UserMessage.objects.get(id=mail_id)
+        message = Campaign.objects.get(id=mail_id)
         if message.user == request.user:
             self.content.update({'sended_message': message,
-                                 'message_form': SendEmailForm(initial=self.__form_init(message))})
+                                 'message_form': CampaignForm(initial=self.__form_init(message))})
 
             return render(request, 'base.html', self.content)
         else:
@@ -315,42 +305,20 @@ class SendEmailView(LoginRequiredMixin, View):
     # function to save changed data of form
     def save_message(self, message, form):
         # form contains tags
-        if 'user_message_tags' in form.changed_data:
+        if 'campaign_tags' in form.changed_data:
             # function from models to clear db field
             message.delete_all_tags()
-            for tag in form.cleaned_data['user_message_tags'].split(','):
+            for tag in form.cleaned_data['campaign_tags'].split(','):
 
-                message.user_message_tags.add(tag.lower().strip())
+                message.campaign_tags.add(tag.lower().strip())
             # remove from changed list to use setattr :)
-            form.changed_data.remove('user_message_tags')
+            form.changed_data.remove('campaign_tags')
             [setattr(message, changed_attr, form.cleaned_data[changed_attr]) for changed_attr in
              form.changed_data]
         else:
             [setattr(message, changed_attr, form.cleaned_data[changed_attr]) for changed_attr in
              form.changed_data]
         message.save()
-
-    def post(self, request, mail_id: int):
-        message = UserMessage.objects.get(id=mail_id)
-        form = SendEmailForm(request.POST, initial=self.__form_init(message))
-
-        if form.is_valid() and message.user == self.request.user:
-            if form.has_changed():
-                # case to save and send message
-                if 'send' in request.POST:
-                    self.save_message(message, form)
-                    user_send_mail.delay(target_mail=form.cleaned_data['user_message_target_email'],
-                                         text=form.cleaned_data['user_message_text'],
-                                         subject=form.cleaned_data['user_message_email_title'],
-                                         message_id=message.id)
-                    messages.add_message(request, messages.SUCCESS, "Mail has been sent")
-                # case to save message
-                elif 'save' in request.POST:
-                    self.save_message(message, form)
-                    messages.add_message(request, messages.SUCCESS, "Message has been save")
-        else:
-            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
-        return redirect(f'/view-email/id-{mail_id}')
 
 
 class SendEmailResults(LoginRequiredMixin, View):
@@ -445,30 +413,30 @@ class SendEmail(LoginRequiredMixin, View):
     def get(self, request):
         self.content.update({
             'doc': 'campaigns.html',
-            'send_form': SendEmailForm(),
+            'send_form': CampaignForm(),
             'title': 'Campaigns',
         })
         return render(request, 'base.html', self.content)
 
     def post(self, request):
-        form = SendEmailForm(request.POST)
+        form = CampaignForm(request.POST)
         if form.is_valid():
             try:
                 # create new message object in DB
-                message = UserMessage.objects.create(user=request.user,
-                                                     user_message_name=form.cleaned_data['user_message_name'],
-                                                     user_message_description=form.cleaned_data['user_message_description'],
-                                                     user_message_target_email=form.cleaned_data['user_message_target_email'],
-                                                     user_message_email_title=form.cleaned_data['user_message_email_title'],
-                                                     user_message_text=form.cleaned_data['user_message_text'])
+                message = Campaign.objects.create(user=request.user,
+                                                     campaign_name=form.cleaned_data['campaign_name'],
+                                                     campaign_description=form.cleaned_data['campaign_description'],
+                                                     campaign_target_email=form.cleaned_data['campaign_target_email'],
+                                                     campaign_email_title=form.cleaned_data['campaign_email_title'],
+                                                     campaign_text=form.cleaned_data['campaign_text'])
 
                 # set message tags
-                for tag in form.cleaned_data['user_message_tags'].split(','):
-                    message.user_message_tags.add(tag.lower().strip())
+                for tag in form.cleaned_data['campaign_tags'].split(','):
+                    message.campaign_tags.add(tag.lower().strip())
                 # send user message
-                user_send_mail.delay(target_mail=form.cleaned_data['user_message_target_email'],
-                                     text=form.cleaned_data['user_message_text'],
-                                     subject=form.cleaned_data['user_message_email_title'],
+                user_send_mail.delay(target_mail=form.cleaned_data['campaign_target_email'],
+                                     text=form.cleaned_data['campaign_text'],
+                                     subject=form.cleaned_data['campaign_email_title'],
                                      message_id=message.id)
                 messages.add_message(request, messages.SUCCESS, "Mail have been sent")
             except Exception as err:
@@ -565,7 +533,7 @@ class LoginPage(View):
     def get(self, request):
         self.content.update({
             'doc': 'forms/login.html',
-            'title': 'login',
+            'title': 'Login',
             'login_form': LoginForm(),
         })
         return render(request, 'base.html', self.content)
@@ -653,7 +621,7 @@ class RegistrationPage(View):
                 # create user's emails
                 second_email = register_form.cleaned_data['second_email']
 
-                user_emails = Campaigns.objects.create(user=new_user,
+                user_emails = UserEmails.objects.create(user=new_user,
                                                         mailer_first_email=register_form.cleaned_data['first_email'],
                                                         mailer_second_email=second_email)
 
@@ -719,7 +687,7 @@ class PasswordRecovery(View):
         if form.is_valid():
             target_mail = form.cleaned_data['email']
             # searching inserted emails
-            emails_user = Campaigns.objects.filter(Q(mailer_first_email=target_mail) | Q(mailer_second_email=target_mail)).first()
+            emails_user = UserEmails.objects.filter(Q(mailer_first_email=target_mail) | Q(mailer_second_email=target_mail)).first()
             # if find emails - send new password
             if emails_user:
 

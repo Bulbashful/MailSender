@@ -43,6 +43,7 @@ class MailerUser(models.Model):
                                           choices=user_status_choice,
                                           default=not_confirmed_user,
                                           verbose_name='user status')
+    # users account type
     free_account_type = "FREE"
     premium_account_type = "PREM"
     user_account_type = (
@@ -63,7 +64,7 @@ class MailerUser(models.Model):
 
 
 # user emails
-class Campaigns(models.Model):
+class UserEmails(models.Model):
     """
     Model with user emails
 
@@ -106,7 +107,7 @@ class DomainBlackList(models.Model):
 
 
 # user sent emails
-class UserMessage(models.Model):
+class Campaign(models.Model):
     """
     Model with user emails
 
@@ -114,46 +115,46 @@ class UserMessage(models.Model):
     text - content of the message
     status - status either send or not
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_messages', default=0)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_campaign', default=0)
     # message template name
-    user_message_name = models.CharField(max_length=100)
+    campaign_name = models.CharField(max_length=100)
     # message template description
-    user_message_description = models.CharField(max_length=500)
+    campaign_description = models.CharField(max_length=500)
     # message tags
-    user_message_tags = TaggableManager(blank=True)    
+    campaign_tags = TaggableManager(blank=True)    
     # message target email
-    user_message_target_email = models.EmailField(max_length=100)
+    campaign_target_email = models.EmailField(max_length=100)
     # message email title
-    user_message_email_title = models.CharField(max_length=50, default='Mail from mailsender')
+    campaign_email_title = models.CharField(max_length=50, default='Mail from mailsender')
     # message text
-    user_message_text = models.CharField(max_length=500)
+    campaign_text = models.CharField(max_length=500)
     # message send status
-    user_message_sent_status = models.BooleanField(default=False)
+    campaign_sent_status = models.BooleanField(default=False)
     # message send datatime
-    user_message_sent_datetime = models.DateTimeField(auto_now=True)
+    campaign_sent_datetime = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name_plural = 'Users Messages'
+        verbose_name_plural = 'Users Campaigns'
 
     def get_short_description(self):
         """
         Get short(<50) message description text
         """
-        return self.user_message_description if len(self.user_message_description) < 50 else self.user_message_description[:50] + ' ...'
+        return self.campaign_description if len(self.campaign_description) < 50 else self.campaign_description[:50] + ' ...'
 
     def get_all_tags(self):
         """
         Get list of message tag's
         """
-        return [tag.name for tag in self.user_message_tags.all()]
+        return [tag.name for tag in self.campaign_tags.all()]
 
     def delete_all_tags(self):
         """
         Delete all tags from input field
         :return:
         """
-        return self.user_message_tags.clear()
+        return self.campaign_tags.clear()
 
     def __str__(self):
-            return f'Author: {self.user.username}; Name: {self.user_message_name}'
+            return f'Author: {self.user.username}; Name: {self.campaign_name}'
             
