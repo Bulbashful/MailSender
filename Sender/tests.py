@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from .models import MailerUser, User, Campaigns
+from .models import MailerUser, User, UserEmails
 from . import forms
 
 
@@ -13,7 +13,7 @@ class MailerUserTestCase(TestCase):
                                   mailer_company_industry='HZ',
                                   mailer_company_website='aaasolutions.by',
                                   )
-        Campaigns.objects.create(user=user,
+        UserEmails.objects.create(user=user,
                                   mailer_first_email='test@gmail.com',
                                   mailer_second_email='test@yandex.by')
 
@@ -25,7 +25,7 @@ class MailerUserTestCase(TestCase):
 
     def test_check_user_emails(self):
         user = User.objects.get(username='John Smith')
-        user_emails = Campaigns.objects.get(user=user)
+        user_emails = UserEmails.objects.get(user=user)
         self.assertEqual(user_emails.mailer_first_email_status, False)
         self.assertEqual(user_emails.mailer_second_email_status, False)
 
