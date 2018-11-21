@@ -314,7 +314,8 @@ class SendEmailResults(LoginRequiredMixin, View):
         })
         # if user send tag
         if tag:
-            sended_messages = UserMessage.objects.filter(user_message_tags__name__in = [tag])
+            sended_messages = UserMessage.objects.filter(user_message_tags__name__in = [tag],
+                                                         user=request.user)
         else:
             sended_messages = UserMessage.objects.filter(user=request.user)
 
