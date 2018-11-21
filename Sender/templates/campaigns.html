@@ -1,6 +1,6 @@
 
 {% load static %}
-    <link href="{% static "/css/login.css" %}" rel="stylesheet">
+    <link href="{% static "/css/view_campaign.css" %}" rel="stylesheet">
 
 <div class="container">
     <h2 class="form-label">Campaigns</h2>
@@ -11,23 +11,23 @@
         <form action="" method="POST" class="form-signin">
             {% csrf_token %}
             <div class="form-group">
-                {{ send_form.user_message_name }}
+                {{ send_form.campaign_name }}
             </div>
             <div class="form-group">
-                {{ send_form.user_message_description }}
+                {{ send_form.campaign_description }}
             </div>
             <div class="form-group">
-                {{ send_form.user_message_tags }}
+                {{ send_form.campaign_tags }}
             </div>
             <hr>
             <div class="form-group">
-                {{ send_form.user_message_target_email }}
+                {{ send_form.campaign_target_email }}
             </div>
             <div class="form-group">
-                {{ send_form.user_message_email_title }}
+                {{ send_form.campaign_email_title }}
             </div>
             <div class="form-group">
-                {{ send_form.user_message_text }}
+                {{ send_form.campaign_text }}
             </div>
             <div class="form-group" id="button-submit">
                 <button type="submit" class="btn btn-light">Send</button>

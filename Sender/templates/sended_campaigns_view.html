@@ -1,9 +1,9 @@
 
 {% load static %}
-    <link href="{% static "/css/login.css" %}" rel="stylesheet">
+    <link href="{% static "/css/view_campaign.css" %}" rel="stylesheet">
 
 <div class="container">
-    <h2 class="form-label">Send email №{{sended_message.id}} view</h2>
+    <h2 class="form-label">Campaign №{{sended_message.id}} view</h2>
   <div class="row">
     <div class="col-md">
     </div>
@@ -11,23 +11,23 @@
         <form action="" method="POST" class="form-signin">
             {% csrf_token %}
             <strong>Email name</strong>:
-               {{message_form.user_message_name}}
+               {{message_form.campaign_name}}
             <br>
-            <strong>Email description</strong>: {{message_form.user_message_description}}
+            <strong>Email description</strong>: {{message_form.campaign_description}}
             <br>
              <strong>Email tags</strong>:
-            {{ message_form.user_message_tags }}
+            {{ message_form.campaign_tags }}
             <hr>
-            <strong>Target email</strong>: {{message_form.user_message_target_email}}
+            <strong>Target email</strong>: {{message_form.campaign_target_email}}
             <br>
-            <strong>Email title</strong>: {{message_form.user_message_email_title}}
+            <strong>Email title</strong>: {{message_form.campaign_email_title}}
             <br>
-            <strong>Email text</strong>: {{message_form.user_message_text}}
+            <strong>Email text</strong>: {{message_form.campaign_text}}
 
             <hr>
-            <strong>Send datetime</strong>: {{sended_message.user_message_sent_datetime}}
+            <strong>Send datetime</strong>: {{sended_message.campaign_sent_datetime}}
             <br>
-            <strong>Send success</strong>: {{sended_message.user_message_sent_status}}
+            <strong>Send success</strong>: {{sended_message.campaign_sent_status}}
             <br>
             <div class="form-right" id="form-left">
                 <input type="submit" class="form-right btn btn-light" name="save" value="Save">
