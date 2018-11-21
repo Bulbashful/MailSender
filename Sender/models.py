@@ -5,7 +5,6 @@ from django.utils.timezone import now
 from taggit.managers import TaggableManager
 
 
-
 # user
 class MailerUser(models.Model):
     """
@@ -44,6 +43,17 @@ class MailerUser(models.Model):
                                           choices=user_status_choice,
                                           default=not_confirmed_user,
                                           verbose_name='user status')
+    free_account_type = "FREE"
+    premium_account_type = "PREM"
+    user_account_type = (
+        (free_account_type, 'Free account'),
+        (premium_account_type, 'Premium account'),
+    )
+
+    mailer_account_type = models.CharField(choices=user_account_type,
+                                           default=free_account_type,
+                                           verbose_name='account type',
+                                           max_length=4)
 
     class Meta:
         verbose_name_plural = 'Users List'
@@ -53,7 +63,7 @@ class MailerUser(models.Model):
 
 
 # user emails
-class UserEmails(models.Model):
+class Campaigns(models.Model):
     """
     Model with user emails
 
@@ -78,6 +88,7 @@ class UserEmails(models.Model):
     
     def __str__(self):
         return f'User: {self.user.username}; Mail: {self.mailer_first_email}'
+
 
 class DomainBlackList(models.Model):
     """
@@ -119,7 +130,7 @@ class UserMessage(models.Model):
     # message send status
     user_message_sent_status = models.BooleanField(default=False)
     # message send datatime
-    user_message_sent_datetime = models.DateTimeField(default=now)
+    user_message_sent_datetime = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = 'Users Messages'
@@ -135,6 +146,13 @@ class UserMessage(models.Model):
         Get list of message tag's
         """
         return [tag.name for tag in self.user_message_tags.all()]
+
+    def delete_all_tags(self):
+        """
+        Delete all tags from input field
+        :return:
+        """
+        return self.user_message_tags.clear()
 
     def __str__(self):
             return f'Author: {self.user.username}; Name: {self.user_message_name}'
