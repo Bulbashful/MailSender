@@ -90,9 +90,9 @@ class UserMessage(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_messages', default=0)
     # message template name
-    user_message_name = models.EmailField(max_length=100)
+    user_message_name = models.CharField(max_length=100)
     # message template description
-    user_message_description = models.EmailField(max_length=500)
+    user_message_description = models.CharField(max_length=500)
     # message tags
     user_message_tags = TaggableManager(blank=True)    
     # message target email
@@ -105,6 +105,9 @@ class UserMessage(models.Model):
     user_message_sent_status = models.BooleanField(default=False)
     # message send datatime
     user_message_sent_datetime = models.DateTimeField(default=now)
+
+    def get_short_description(self):
+        return self.user_message_description if len(self.user_message_description) < 50 else self.user_message_description[:50] + ' ...'
 
     def get_all_tags(self):
         return [tag.name for tag in self.user_message_tags.all()]

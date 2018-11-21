@@ -16,6 +16,8 @@ urlpatterns = [
     path('send-email/', views.SendEmail.as_view(), name='send-email'),
     path('change-password/', views.ChangePassword.as_view(), name='change-password'),
 
+    # user messages
+    path('send-email/', views.SendEmail.as_view(), name='send-email'),
     # Account activation
     path('activation/<int:id>/<slug:activation_string>/', views.MailVerify.as_view(), name='account_activation'),
 
