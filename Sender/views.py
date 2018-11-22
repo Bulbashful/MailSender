@@ -19,7 +19,7 @@ from django.utils.timezone import now
 from django.db import IntegrityError
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, DomainBlackList, UserEmails, MailerUser, Campaign
+from .models import User, DomainBlackList, UserEmails, MailerUser, Campaign, AttachedFiles,UserSavedMessages
 from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm, CampaignForm, CampaignsSearchForm
 
 from .tasks import mass_send_mails, user_send_mail
@@ -235,6 +235,7 @@ class AccountSettings(LoginRequiredMixin, View):
 
         return redirect('account-settings')
 
+
 # change password page
 class ChangePassword(LoginRequiredMixin, View):
     content = {}
@@ -275,89 +276,54 @@ class ChangePassword(LoginRequiredMixin, View):
             messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
         return redirect('change-password')
 
-# view with already created campaign and sended email
-class SendEmailView(LoginRequiredMixin, View):
+
+# detail campaign view
+class CampaignDetailView(LoginRequiredMixin, View):
     content = {}
 
     # redirect if not log in
     login_url = '/login/'                 
     redirect_field_name = 'login'
 
-    def get(self, request, mail_id: int):
-
+    def get(self, request, campaign_id: int):
+        campaign = Campaign.objects.get(id=campaign_id)
         self.content.update({
-            'doc': 'sended_campaigns_view.html',
-            'title': 'Send email view',
+            'doc': 'campaigns_detail_view.html',
+            'title': f'{campaign.campaign_name}',
         })
+        self.content.update({'campaign': campaign,
+                             'campaign_files': AttachedFiles.objects.filter(campaign=campaign)})
 
-        message = Campaign.objects.get(id=mail_id)
-        if message.user == request.user:
-            self.content.update({'sended_message': message,
-                                 'message_form': CampaignForm(initial=self.__form_init(message))})
+        return render(request, 'base.html', self.content)
 
-            return render(request, 'base.html', self.content)
-        else:
+    def post(self, request, campaign_id: int):
+        if 'send' in request.POST:
+            campaign = Campaign.objects.get(id=campaign_id)
+            campaign_files = campaign.campaign_files.all()
+            first_email = self.request.user.user_emails.mailer_first_email
+            second_email = self.request.user.user_emails.mailer_second_email
+            try:
+                saved_campaign = UserSavedMessages.objects.create(user=self.request.user,
+                                                                      saved_campaign=campaign)
+                # case to save and send message
+                emails = [first_email]
+                emails.append(second_email) if second_email != '' else None
 
-            messages.add_message(request, messages.ERROR, 'Not enough right to open page!')
+                for email in emails:
+                    user_send_mail.delay(target_mail=email,
+                                         text=f'{campaign.campaign_text}\n{[campaign_files]}',
+                                         subject='New campaign',
+                                         message_id=saved_campaign.id)
 
-            return redirect('home')
-
-    def post(self, request, mail_id: int):
-        message = Campaign.objects.get(id=mail_id)
-        form = CampaignForm(request.POST, initial=self.__form_init(message))
-
-        if form.is_valid() and message.user == self.request.user:
-            # case to save and send message
-            if 'send' in request.POST:
-                self.save_message(message, form)
-                user_send_mail.delay(target_mail=form.cleaned_data['campaign_target_email'],
-                                     text=form.cleaned_data['campaign_text'],
-                                     subject=form.cleaned_data['campaign_email_title'],
-                                     message_id=message.id)
                 messages.add_message(request, messages.SUCCESS, "Mail has been sent")
-            # case to save message
-            elif 'save' in request.POST:
-                self.save_message(message, form)
-                messages.add_message(request, messages.SUCCESS, "Message has been save")
-            # case to add cometn to message
-            elif 'comment' in request.POST:
-                self.save_message(message, form)
-                messages.add_message(request, messages.SUCCESS, "Message has been save")
-        else:
-            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
-        return redirect(f'/view-campaign/id-{mail_id}')
+                # case to save message
+            except Exception as err:
+                print(err)
+        return redirect(f'/view-campaign/id-{campaign_id}')
 
-    def __form_init(self, message):
-        data = {'campaign_name': message.campaign_name,
-                'campaign_description': message.campaign_description,
-                # join used to refactor tag's view in field
-                'campaign_tags': ', '.join(message.get_all_tags()),
-                'campaign_target_email': message.campaign_target_email,
-                'campaign_email_title': message.campaign_email_title,
-                'campaign_text': message.campaign_text,
-                }
-        return data
-
-    # function to save changed data of form
-    def save_message(self, message, form):
-        # form contains tags
-        if 'campaign_tags' in form.changed_data:
-            # function from models to clear db field
-            message.delete_all_tags()
-            for tag in form.cleaned_data['campaign_tags'].split(','):
-
-                message.campaign_tags.add(tag.lower().strip())
-            # remove from changed list to use setattr :)
-            form.changed_data.remove('campaign_tags')
-            [setattr(message, changed_attr, form.cleaned_data[changed_attr]) for changed_attr in
-             form.changed_data]
-        else:
-            [setattr(message, changed_attr, form.cleaned_data[changed_attr]) for changed_attr in
-             form.changed_data]
-        message.save()
 
 # view with list of created campaigns
-class SendEmailResults(LoginRequiredMixin, View):
+class CampaignView(LoginRequiredMixin, View):
     """
     List of Campaigns
     """
@@ -369,12 +335,12 @@ class SendEmailResults(LoginRequiredMixin, View):
 
     def get(self, request, tag: str = None):
         self.content.update({
-            'doc': 'send_campaigns_results.html',
+            'doc': 'campaigns.html',
             'title': 'Send email results',
             'search_form': CampaignsSearchForm()
         })
 
-        campaign_filtered_by_user = Campaign.objects.filter(user=request.user)
+        campaign_filtered_by_user = Campaign.objects.all()
 
         search_form = CampaignsSearchForm(request.GET)
 
@@ -447,40 +413,41 @@ class SendEmail(LoginRequiredMixin, View):
     redirect_field_name = 'login'
 
     def get(self, request):
+        saved_message = UserSavedMessages.objects.filter(user=self.request.user)
         self.content.update({
-            'doc': 'campaigns.html',
-            'send_form': CampaignForm(),
-            'title': 'Campaigns',
+            'doc': 'saved_messages.html',
+            'saved_message': saved_message,
+            'title': 'Saved messages',
         })
         return render(request, 'base.html', self.content)
 
-    def post(self, request):
-        form = CampaignForm(request.POST)
-        if form.is_valid():
-            try:
-                # create new message object in DB
-                message = Campaign.objects.create(user=request.user,
-                                                     campaign_name=form.cleaned_data['campaign_name'],
-                                                     campaign_description=form.cleaned_data['campaign_description'],
-                                                     campaign_target_email=form.cleaned_data['campaign_target_email'],
-                                                     campaign_email_title=form.cleaned_data['campaign_email_title'],
-                                                     campaign_text=form.cleaned_data['campaign_text'])
-
-                # set message tags
-                for tag in form.cleaned_data['campaign_tags'].split(','):
-                    message.campaign_tags.add(tag.lower().strip())
-                # send user message
-                user_send_mail.delay(target_mail=form.cleaned_data['campaign_target_email'],
-                                     text=form.cleaned_data['campaign_text'],
-                                     subject=form.cleaned_data['campaign_email_title'],
-                                     message_id=message.id)
-                messages.add_message(request, messages.SUCCESS, "Mail have been sent")
-            except Exception as err:
-                print(err)
-                messages.add_message(request, messages.ERROR, "Something happen wrong")
-        else:
-            messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
-        return redirect('campaigns')
+    # def post(self, request):
+    #     form = CampaignForm(request.POST)
+    #     if form.is_valid():
+    #         try:
+    #             # create new message object in DB
+    #             message = Campaign.objects.create(user=request.user,
+    #                                                  campaign_name=form.cleaned_data['campaign_name'],
+    #                                                  campaign_description=form.cleaned_data['campaign_description'],
+    #                                                  campaign_target_email=form.cleaned_data['campaign_target_email'],
+    #                                                  campaign_email_title=form.cleaned_data['campaign_email_title'],
+    #                                                  campaign_text=form.cleaned_data['campaign_text'])
+    #
+    #             # set message tags
+    #             for tag in form.cleaned_data['campaign_tags'].split(','):
+    #                 message.campaign_tags.add(tag.lower().strip())
+    #             # send user message
+    #             user_send_mail.delay(target_mail=form.cleaned_data['campaign_target_email'],
+    #                                  text=form.cleaned_data['campaign_text'],
+    #                                  subject=form.cleaned_data['campaign_email_title'],
+    #                                  message_id=message.id)
+    #             messages.add_message(request, messages.SUCCESS, "Mail have been sent")
+    #         except Exception as err:
+    #             print(err)
+    #             messages.add_message(request, messages.ERROR, "Something happen wrong")
+    #     else:
+    #         messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
+    #     return redirect('campaigns')
 
 
 # mail verification

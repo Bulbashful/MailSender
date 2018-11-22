@@ -135,7 +135,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = ['Sender/static']
-MEDIA_ROOT = '/media/'
+#TODO убрать
+MEDIA_ROOT = '/home/pavel/MailSender/Sender/media'
 MEDIA_URL = '/media/'
 STATIC_ROOT = 'static'
 
