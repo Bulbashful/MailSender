@@ -16,13 +16,13 @@ urlpatterns = [
     path('change-password/', views.ChangePassword.as_view(), name='change-password'),
 
     # user campaigns
-    path('campaigns/', views.SendEmail.as_view(), name='campaigns'),
+    path('campaigns/', views.CampaignView.as_view(), name='campaigns'),
     # view user campaigns by ID
-    path('view-campaign/id-<int:mail_id>/', views.SendEmailView.as_view(), name='view-campaign'),
+    path('view-campaign/id-<int:campaign_id>/', views.CampaignDetailView.as_view(), name='view-campaign'),
     # view campaigns list
-    path('result-campaigns/', views.SendEmailResults.as_view(), name='campaigns-result'),
+    path('result-campaigns/', views.CampaignView.as_view(), name='campaigns-result'),
     # view campaigns by tag
-    path('result-campaigns/tag-<str:tag>/', views.SendEmailResults.as_view(), name='campaigns-result-tag'),
+    path('result-campaigns/tag-<str:tag>/', views.CampaignView.as_view(), name='campaigns-result-tag'),
 
     # Account activation
     path('activation/<int:id>/<slug:activation_string>/', views.MailVerify.as_view(), name='account_activation'),

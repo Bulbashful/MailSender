@@ -3,36 +3,37 @@
     <link href="{% static "/css/view_campaign.css" %}" rel="stylesheet">
 
 <div class="container">
-    <h2 class="form-label">Campaigns</h2>
+    <h2 class="form-label">Campaigns. Results</h2>
+
   <div class="row">
     <div class="col-md">
     </div>
     <div class="col-md">
-        <form action="" method="POST" class="form-signin">
-            {% csrf_token %}
-            <div class="form-group">
-                {{ send_form.campaign_name }}
-            </div>
-            <div class="form-group">
-                {{ send_form.campaign_description }}
-            </div>
-            <div class="form-group">
-                {{ send_form.campaign_tags }}
-            </div>
-            <hr>
-            <div class="form-group">
-                {{ send_form.campaign_target_email }}
-            </div>
-            <div class="form-group">
-                {{ send_form.campaign_email_title }}
-            </div>
-            <div class="form-group">
-                {{ send_form.campaign_text }}
-            </div>
-            <div class="form-group" id="button-submit">
-                <button type="submit" class="btn btn-light">Send</button>
+
+        <form action="" method="GET" class="form-signin">
+            <div class="input-group mb-3">
+                {{search_form.campaign_search}}
+                <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+                </div>
             </div>
         </form>
+
+        {% for sended_message in sended_messages %}
+            <strong>Campaign name</strong>:
+                <a href="{% url 'view-campaign' sended_message.id %}">{{sended_message.campaign_name}}</a> 
+            <br>
+            <strong>Campaign description</strong>: {{sended_message.get_short_description}}
+            <br>
+            <strong>Campaign tags</strong>: 
+            {% for tag in  sended_message.get_all_tags %}
+
+                <a href="{% url 'campaigns-result-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
+
+            {% endfor %}
+            
+            <hr>
+        {% endfor %}
     </div>
     <div class="col-md">
     </div>

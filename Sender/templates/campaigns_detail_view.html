@@ -1,0 +1,37 @@
+
+{% load static %}
+    <link href="{% static "/css/view_campaign.css" %}" rel="stylesheet">
+
+<div class="container">
+    <h2 class="form-label">Campaign {{campaign.campaign_name}} view</h2>
+  <div class="row">
+    <div class="col-md">
+    </div>
+    <div class="col-md">
+
+            <strong>Campaign description</strong>: {{campaign.campaign_description}}
+            <br>
+             <strong>Campaign tags</strong>:
+                    {% for tag in  campaign.get_all_tags %}
+                <a href="{% url 'campaigns-result-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
+            {% endfor %}
+            <hr>
+            <strong>Campaign text</strong>: {{campaign.campaign_text}}
+            <hr>
+            <strong>Compaign files</strong>
+                {% for file in campaign_files %}
+                <a href="{{ file.file.url }}">{{ file.file.name }}</a>
+                {% endfor %}
+            <br>
+        <form action="" method="POST" class="form-signin">
+            {% csrf_token %}
+            <div class="form-left" id="form-group">
+                <input type="submit" class="form-left btn btn-light" name="send" value="Send">
+            </div>
+            <br>
+        </form>
+    </div>
+    <div class="col-md">
+    </div>
+  </div>
+</div>

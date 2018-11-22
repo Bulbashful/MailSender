@@ -115,7 +115,7 @@ class Campaign(models.Model):
     text - content of the message
     status - status either send or not
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_campaign', default=0)
+    #user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_campaign', default=0)
     # message template name
     campaign_name = models.CharField(max_length=100)
     # message template description
@@ -123,15 +123,15 @@ class Campaign(models.Model):
     # message tags
     campaign_tags = TaggableManager(blank=True)    
     # message target email
-    campaign_target_email = models.EmailField(max_length=100)
+    #campaign_target_email = models.EmailField(max_length=100)
     # message email title
-    campaign_email_title = models.CharField(max_length=50, default='Mail from mailsender')
+    #campaign_email_title = models.CharField(max_length=50, default='Mail from mailsender')
     # message text
     campaign_text = models.CharField(max_length=500)
     # message send status
-    campaign_sent_status = models.BooleanField(default=False)
+    #campaign_sent_status = models.BooleanField(default=False)
     # message send datatime
-    campaign_sent_datetime = models.DateTimeField(auto_now=True)
+    #campaign_sent_datetime = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = 'Users Campaigns'
@@ -156,5 +156,32 @@ class Campaign(models.Model):
         return self.campaign_tags.clear()
 
     def __str__(self):
-            return f'Author: {self.user.username}; Name: {self.campaign_name}'
-            
+            return f'Campaign: {self.campaign_name}'
+
+
+class AttachedFiles(models.Model):
+    file = models.FileField(upload_to='attached_files', null=True, blank=True)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='campaign_files',
+                                 null=True, blank=True)
+
+
+class UserSavedMessages(models.Model):
+    """
+    Model with user saved campaigns
+
+    text - content of the message
+    status - status either send or not
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_saved_messages', default=0)
+    saved_campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name='saved_campaign',
+                                          primary_key=True)
+
+    campaign_sent_status = models.BooleanField(default=False)
+    # message send datetime
+    campaign_sent_datetime = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Users Saved Campaigns'
+
+    def __str__(self):
+            return f'User: {self.user}'
