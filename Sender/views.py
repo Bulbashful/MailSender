@@ -406,48 +406,82 @@ class CampaignView(LoginRequiredMixin, View):
 
 # view with creating campaign form and send mail 
 class SendEmail(LoginRequiredMixin, View):
+
+# view with list of created campaigns
+class SavedCampaignsListView(LoginRequiredMixin, View):
+    """
+    List of Campaigns
+    """
     content = {}
 
     # redirect if not log in
     login_url = '/login/'                 
     redirect_field_name = 'login'
 
-    def get(self, request):
-        saved_message = UserSavedMessages.objects.filter(user=self.request.user)
+    def get(self, request, tag: str = None):
         self.content.update({
-            'doc': 'saved_messages.html',
-            'saved_message': saved_message,
-            'title': 'Saved messages',
+            'doc': 'saved_campaigns.html',
+            'title': 'Campaigns',
+            'search_form': CampaignsSearchForm()
         })
+
+        all_campaigns_by_user = UserSavedCampaigns.objects.filter(user=request.user)
+
+        search_form = CampaignsSearchForm(request.GET)
+
+        # if user set tag and search request
+        if tag and search_form.is_valid():
+            # filter campaigns by tag
+            campaign_filtered_by_tag = all_campaigns_by_user.filter(saved_campaign__campaign_tags__name__in = [tag])
+            # get search request from form
+            search_request = search_form.cleaned_data['campaign_search']
+
+            # search data in Campaigns model
+            searched_campaigns = self.__search(search_query = campaign_filtered_by_tag, 
+                                               search_request = search_request)
+            if searched_campaigns:
+                messages.add_message(request, messages.SUCCESS, 'Success search')
+            else:
+                messages.add_message(request, messages.INFO, 'Nothing ...')
+
+            self.content.update({'saved_campaigns': searched_campaigns})
+
+        # if user send tag
+        elif tag:
+            campaign_filtered_by_tag = all_campaigns_by_user.filter(saved_campaign__campaign_tags__name__in = [tag])
+
+            self.content.update({'saved_campaigns': campaign_filtered_by_tag})
+
+        # if user send search request
+        elif search_form.is_valid():
+            # get search request from form
+            search_request = search_form.cleaned_data['campaign_search']
+
+            # search data in Campaigns model
+            searched_campaigns = self.__search(search_query = all_campaigns_by_user, 
+                                               search_request = search_request)
+
+            if searched_campaigns:
+                messages.add_message(request, messages.SUCCESS, 'Success search')
+            else:
+                messages.add_message(request, messages.INFO, 'Nothing ...')
+
+            self.content.update({'saved_campaigns': searched_campaigns})
+        else:
+
+            self.content.update({'saved_campaigns': all_campaigns_by_user})
+
         return render(request, 'base.html', self.content)
 
-    # def post(self, request):
-    #     form = CampaignForm(request.POST)
-    #     if form.is_valid():
-    #         try:
-    #             # create new message object in DB
-    #             message = Campaign.objects.create(user=request.user,
-    #                                                  campaign_name=form.cleaned_data['campaign_name'],
-    #                                                  campaign_description=form.cleaned_data['campaign_description'],
-    #                                                  campaign_target_email=form.cleaned_data['campaign_target_email'],
-    #                                                  campaign_email_title=form.cleaned_data['campaign_email_title'],
-    #                                                  campaign_text=form.cleaned_data['campaign_text'])
-    #
-    #             # set message tags
-    #             for tag in form.cleaned_data['campaign_tags'].split(','):
-    #                 message.campaign_tags.add(tag.lower().strip())
-    #             # send user message
-    #             user_send_mail.delay(target_mail=form.cleaned_data['campaign_target_email'],
-    #                                  text=form.cleaned_data['campaign_text'],
-    #                                  subject=form.cleaned_data['campaign_email_title'],
-    #                                  message_id=message.id)
-    #             messages.add_message(request, messages.SUCCESS, "Mail have been sent")
-    #         except Exception as err:
-    #             print(err)
-    #             messages.add_message(request, messages.ERROR, "Something happen wrong")
-    #     else:
-    #         messages.add_message(request, messages.WARNING, "Invalid form data or you didn't confirm your email")
-    #     return redirect('campaigns')
+    def __search(self, search_query: QuerySet, search_request: str):
+        # search by name
+        search_campaign_by_name = search_query.filter(saved_campaign__campaign_name__icontains = search_request)
+        # search by description
+        search_campaign_by_description = search_query.filter(saved_campaign__campaign_description__icontains =search_request)
+        
+        searched_campaigns = search_campaign_by_name | search_campaign_by_description
+            
+        return searched_campaigns
 
 
 # mail verification

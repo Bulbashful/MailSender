@@ -20,9 +20,9 @@ urlpatterns = [
     # view user campaigns by ID
     path('view-campaign/id-<int:campaign_id>/', views.CampaignDetailView.as_view(), name='view-campaign'),
     # view campaigns list
-    path('result-campaigns/', views.CampaignView.as_view(), name='campaigns-result'),
+    path('saved-campaigns/', views.SavedCampaignsListView.as_view(), name='campaigns-saved'),
     # view campaigns by tag
-    path('result-campaigns/tag-<str:tag>/', views.CampaignView.as_view(), name='campaigns-result-tag'),
+    path('saved-campaigns/tag-<str:tag>/', views.SavedCampaignsListView.as_view(), name='campaigns-saved-tag'),
 
     # Account activation
     path('activation/<int:id>/<slug:activation_string>/', views.MailVerify.as_view(), name='account_activation'),

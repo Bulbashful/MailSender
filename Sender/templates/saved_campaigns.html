@@ -1,0 +1,42 @@
+
+{% load static %}
+<link href="{% static "/css/view_campaign.css" %}" rel="stylesheet">
+
+<div class="container">
+<h2 class="form-label">Saved Campaigns</h2>
+
+<div class="row">
+<div class="col-md">
+</div>
+<div class="col-md">
+
+    <form action="" method="GET" class="form-signin">
+        <div class="input-group mb-3">
+            {{search_form.campaign_search}}
+            <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+
+    {% for saved_campaign in saved_campaigns %}
+        <strong>Campaign name</strong>:
+            <a href="{% url 'view-campaign' saved_campaign.saved_campaign.id %}">{{saved_campaign.saved_campaign.campaign_name}}</a> 
+        <br>
+        <strong>Campaign description</strong>: {{saved_campaign.saved_campaign.get_short_description}}
+        <br>
+        <strong>Campaign tags</strong>: 
+        {% for tag in  saved_campaign.saved_campaign.get_all_tags %}
+
+            <a href="{% url 'campaigns-saved-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
+
+        {% endfor %}
+        <br>
+        {{ saved_campaign.saved_campaign_sent_datetime }}
+        <hr>
+    {% endfor %}
+</div>
+<div class="col-md">
+</div>
+</div>
+</div>
