@@ -3,7 +3,7 @@
     <link href="{% static "/css/view_campaign.css" %}" rel="stylesheet">
 
 <div class="container">
-    <h2 class="form-label">Campaigns. Results</h2>
+    <h2 class="form-label">Campaigns</h2>
 
   <div class="row">
     <div class="col-md">
@@ -28,7 +28,7 @@
             <strong>Campaign tags</strong>: 
             {% for tag in  sended_message.get_all_tags %}
 
-                <a href="{% url 'campaigns-result-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
+                <a href="{% url 'campaigns-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
 
             {% endfor %}
             
