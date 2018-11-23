@@ -342,18 +342,18 @@ class CampaignsListView(LoginRequiredMixin, View):
     def get(self, request, tag: str = None):
         self.content.update({
             'doc': 'campaigns.html',
-            'title': 'Send email results',
+            'title': 'Campaigns',
             'search_form': CampaignsSearchForm()
         })
 
-        campaign_filtered_by_user = Campaign.objects.all()
+        all_campaigns = Campaign.objects.all()
 
         search_form = CampaignsSearchForm(request.GET)
 
         # if user set tag and search request
         if tag and search_form.is_valid():
             # filter campaigns by tag
-            campaign_filtered_by_tag = campaign_filtered_by_user.filter(campaign_tags__name__in = [tag])
+            campaign_filtered_by_tag = all_campaigns.filter(campaign_tags__name__in = [tag])
             # get search request from form
             search_request = search_form.cleaned_data['campaign_search']
 
@@ -369,7 +369,7 @@ class CampaignsListView(LoginRequiredMixin, View):
 
         # if user send tag
         elif tag:
-            campaign_filtered_by_tag = campaign_filtered_by_user.filter(campaign_tags__name__in = [tag])
+            campaign_filtered_by_tag = all_campaigns.filter(campaign_tags__name__in = [tag])
 
             self.content.update({'sended_messages': campaign_filtered_by_tag})
 
@@ -379,7 +379,7 @@ class CampaignsListView(LoginRequiredMixin, View):
             search_request = search_form.cleaned_data['campaign_search']
 
             # search data in Campaigns model
-            searched_campaigns = self.__search(search_query = campaign_filtered_by_user, 
+            searched_campaigns = self.__search(search_query = all_campaigns, 
                                                search_request = search_request)
 
             if searched_campaigns:
@@ -390,7 +390,7 @@ class CampaignsListView(LoginRequiredMixin, View):
             self.content.update({'sended_messages': searched_campaigns})
         else:
 
-            self.content.update({'sended_messages': campaign_filtered_by_user})
+            self.content.update({'sended_messages': all_campaigns})
 
         return render(request, 'base.html', self.content)
 
