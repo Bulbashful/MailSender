@@ -124,26 +124,15 @@ class Campaign(models.Model):
     text - content of the message
     status - status either send or not
     """
-    #user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_campaign', default=0)
     # message template name
     campaign_name = models.CharField(max_length=100)
     # message template description
-    campaign_description = models.CharField(max_length=500)
+    campaign_description = models.TextField(max_length=1500)
     # message tags
-    campaign_tags = TaggableManager(blank=True)    
-    # message target email
-    #campaign_target_email = models.EmailField(max_length=100)
-    # message email title
-    #campaign_email_title = models.CharField(max_length=50, default='Mail from mailsender')
-    # message text
-    campaign_text = models.CharField(max_length=500)
-    # message send status
-    #campaign_sent_status = models.BooleanField(default=False)
-    # message send datatime
-    #campaign_sent_datetime = models.DateTimeField(auto_now=True)
+    campaign_tags = TaggableManager(blank=True)
 
     class Meta:
-        verbose_name_plural = 'Users Campaigns'
+        verbose_name_plural = 'Campaigns'
 
     def get_short_description(self):
         """

@@ -399,19 +399,11 @@ class CampaignsListView(LoginRequiredMixin, View):
         search_campaign_by_name = search_query.filter(campaign_name__icontains = search_request)
         # search by description
         search_campaign_by_description = search_query.filter(campaign_description__icontains =search_request)
-        # search by target email
-        search_campaign_by_email = search_query.filter(campaign_target_email__icontains = search_request)
-        # search by email title
-        search_campaign_by_title = search_query.filter(campaign_email_title__icontains = search_request)
-        # search by email text
-        search_campaign_by_text = search_query.filter(campaign_text__icontains = search_request)
-
-        searched_campaigns = search_campaign_by_name | search_campaign_by_description | search_campaign_by_email | search_campaign_by_title | search_campaign_by_text
+        
+        searched_campaigns = search_campaign_by_name | search_campaign_by_description
             
         return searched_campaigns
 
-# view with creating campaign form and send mail 
-class SendEmail(LoginRequiredMixin, View):
 
 # view with list of created campaigns
 class SavedCampaignsListView(LoginRequiredMixin, View):
