@@ -87,6 +87,15 @@ class UserEmails(models.Model):
     class Meta:
         verbose_name_plural = 'Users Emails List'
     
+    def get_all_emails(self):
+        """
+        Method return list of user mails. If user have only one mail - return first, else - return both
+        """
+        if self.mailer_with_single_email:
+            return [self.mailer_first_email]
+        else:
+            return [self.mailer_first_email, self.mailer_second_email]
+
     def __str__(self):
         return f'User: {self.user.username}; Mail: {self.mailer_first_email}'
 

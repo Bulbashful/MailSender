@@ -2,6 +2,7 @@ import random
 import string
 import re
 import hashlib
+from datetime import datetime
 
 from django.db.models import Sum
 from django.shortcuts import render
@@ -299,31 +300,36 @@ class CampaignDetailView(LoginRequiredMixin, View):
     def post(self, request, campaign_id: int):
         if 'send' in request.POST:
             campaign = Campaign.objects.get(id=campaign_id)
-            campaign_files = campaign.campaign_files.all()
-            first_email = self.request.user.user_emails.mailer_first_email
-            second_email = self.request.user.user_emails.mailer_second_email
+            
+            # TODO Work on attachemnt send
+            # get campaign files
+            # campaign_files = campaign.campaign_files.all()
             try:
-                saved_campaign = UserSavedMessages.objects.create(user=self.request.user,
-                                                                      saved_campaign=campaign)
-                # case to save and send message
-                emails = [first_email]
-                emails.append(second_email) if second_email != '' else None
+                saved_campaign, created = UserSavedCampaigns.objects.get_or_create(user=self.request.user,
+                                                                                   saved_campaign=campaign)
+                
+                if not created:
+                    saved_campaign.saved_campaign_sent_datetime = datetime.now()
 
-                for email in emails:
+                    saved_campaign.save()
+
+                # send user mails
+                for email in self.request.user.user_emails.get_all_emails():
                     user_send_mail.delay(target_mail=email,
-                                         text=f'{campaign.campaign_text}\n{[campaign_files]}',
-                                         subject='New campaign',
+                                         text=f'{campaign.campaign_name}.{campaign.campaign_description}',
+                                         subject='Saved campaign',
                                          message_id=saved_campaign.id)
 
                 messages.add_message(request, messages.SUCCESS, "Mail has been sent")
                 # case to save message
             except Exception as err:
                 print(err)
+                messages.add_message(request, messages.ERROR, "Error while campaign save!")
         return redirect(f'/view-campaign/id-{campaign_id}')
 
 
 # view with list of created campaigns
-class CampaignView(LoginRequiredMixin, View):
+class CampaignsListView(LoginRequiredMixin, View):
     """
     List of Campaigns
     """
