@@ -158,9 +158,16 @@ class Campaign(models.Model):
 
 
 class AttachedFiles(models.Model):
-    file = models.FileField(upload_to='attached_files', null=True, blank=True)
+    campaign_file = models.FileField(upload_to=f'attached_files/{now().date().strftime("%Y/%m/%d")}', null=True, blank=True)
+
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='campaign_files',
                                  null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Attached Campaigns Files'
+
+    def __str__(self):
+        return f'Campaign: {self.campaign.campaign_name}'
 
 
 class UserSavedCampaigns(models.Model):

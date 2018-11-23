@@ -16,16 +16,21 @@ urlpatterns = [
     path('change-password/', views.ChangePassword.as_view(), name='change-password'),
 
     # user campaigns
-    path('campaigns/', views.CampaignView.as_view(), name='campaigns'),
-    # view user campaigns by ID
-    path('view-campaign/id-<int:campaign_id>/', views.CampaignDetailView.as_view(), name='view-campaign'),
+    path('campaigns/', views.CampaignsListView.as_view(), name='campaigns'),
+    # view campaigns by tag
+    path('campaigns/tag-<str:tag>/', views.CampaignsListView.as_view(), name='campaigns-tag'),
+        
     # view campaigns list
     path('saved-campaigns/', views.SavedCampaignsListView.as_view(), name='campaigns-saved'),
     # view campaigns by tag
     path('saved-campaigns/tag-<str:tag>/', views.SavedCampaignsListView.as_view(), name='campaigns-saved-tag'),
 
+    # view user campaigns by ID
+    path('view-campaign/id-<int:campaign_id>/', views.CampaignDetailView.as_view(), name='view-campaign'),
+
     # Account activation
     path('activation/<int:id>/<slug:activation_string>/', views.MailVerify.as_view(), name='account_activation'),
+
 
     # Login, logout and registration
     path('login/', views.LoginPage.as_view(), name='login'),
