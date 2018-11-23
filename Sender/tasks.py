@@ -9,7 +9,7 @@ from django.core.cache import cache
 from MessageSender.celery import app
 from celery.result import AsyncResult
 
-from .models import Campaign, User
+from .models import UserSavedCampaigns, User
 
 """
 to run celery use command : 
@@ -40,7 +40,7 @@ def user_send_mail(target_mail, subject, text, message_id):
     :param message_id: User created message id
     """
     # get message object by id 
-    message = Campaign.objects.get(id=message_id)
+    saved_message = UserSavedCampaigns.objects.get(id=message_id)
     
     try:
         send_mail(
@@ -52,8 +52,8 @@ def user_send_mail(target_mail, subject, text, message_id):
             message=text,
         )
         # after success sending - change `campaign_sent_status` to True
-        message.campaign_sent_status = True
-        message.save()
+        saved_message.saved_campaign_sent_status = True
+        saved_message.save()
     
     except Exception as err:
         print(err)

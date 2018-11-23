@@ -165,23 +165,24 @@ class AttachedFiles(models.Model):
                                  null=True, blank=True)
 
 
-class UserSavedMessages(models.Model):
+class UserSavedCampaigns(models.Model):
     """
     Model with user saved campaigns
 
     text - content of the message
     status - status either send or not
     """
+    # user
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_saved_messages', default=0)
-    saved_campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name='saved_campaign',
-                                          primary_key=True)
-
-    campaign_sent_status = models.BooleanField(default=False)
+    # campaign
+    saved_campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name='saved_campaign', default = 0)
+    # send status
+    saved_campaign_sent_status = models.BooleanField(default=False)
     # message send datetime
-    campaign_sent_datetime = models.DateTimeField(auto_now=True)
+    saved_campaign_sent_datetime = models.DateTimeField(default=now)
 
     class Meta:
         verbose_name_plural = 'Users Saved Campaigns'
 
     def __str__(self):
-            return f'User: {self.user}'
+            return f'User: {self.user}; Campaign: {self.saved_campaign.campaign_name}'

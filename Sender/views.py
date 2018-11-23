@@ -19,7 +19,7 @@ from django.utils.timezone import now
 from django.db import IntegrityError
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import User, DomainBlackList, UserEmails, MailerUser, Campaign, AttachedFiles,UserSavedMessages
+from .models import User, DomainBlackList, UserEmails, MailerUser, Campaign, AttachedFiles, UserSavedCampaigns
 from .forms import RegisterForm, LoginForm, PasswordRecoveryForm, ChangeUserInfo, ChangePasswordForm, CampaignForm, CampaignsSearchForm
 
 from .tasks import mass_send_mails, user_send_mail

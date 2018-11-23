@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MailerUser, UserEmails, DomainBlackList, Campaign, AttachedFiles, UserSavedMessages
+from .models import MailerUser, UserEmails, DomainBlackList, Campaign, AttachedFiles, UserSavedCampaigns
 
 
 class FilesInline(admin.StackedInline):
@@ -26,4 +26,4 @@ admin.site.register(UserEmails)
 admin.site.register(DomainBlackList)
 admin.site.register(Campaign, CampaignAdminPage)
 admin.site.register(AttachedFiles)
-admin.site.register(UserSavedMessages)
+admin.site.register(UserSavedCampaigns)
