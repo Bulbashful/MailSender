@@ -180,7 +180,7 @@ class UserSavedCampaigns(models.Model):
     # user
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_saved_messages', default=0)
     # campaign
-    saved_campaign = models.OneToOneField(Campaign, on_delete=models.CASCADE, related_name='saved_campaign', default = 0)
+    saved_campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='saved_campaign', default = 0)
     # send status
     saved_campaign_sent_status = models.BooleanField(default=False)
     # message send datetime
