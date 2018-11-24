@@ -125,7 +125,7 @@ class AccountSettings(LoginRequiredMixin, View):
             setattr(user.user_emails, email_num + '_status', False)
 
             # new hash
-            link = f'http://{self.request.get_host()}/activation/{user.id}/' \
+            link = f'/activation/{user.id}/' \
                           f'{hashlib.sha224(str(user.username + changed_form.cleaned_data[email_num]).encode()).hexdigest()}'
 
             # dict contains info about new email to send and info of changed to send it to old email
@@ -174,7 +174,8 @@ class AccountSettings(LoginRequiredMixin, View):
                     target_mails=emails[email][0],
                     text=emails[email][1],
                     subject=emails[email][2],
-                    link=emails[email][3])
+                    link=emails[email][3],
+                    host=self.request.get_host())
             
             logout(self.request)
         # case when form contains two emails or none
@@ -186,7 +187,8 @@ class AccountSettings(LoginRequiredMixin, View):
                 source_mail=settings.EMAIL_HOST_USER,
                 target_mails=user.user_emails.mailer_first_email,
                 text=f'Changed: {changed_fields_string};',
-                subject='Change some fields')
+                subject='Change some fields',
+                host=self.request.get_host())
 
         # save new data
         user.save()
@@ -268,7 +270,8 @@ class ChangePassword(LoginRequiredMixin, View):
                 mass_send_mails.delay(target_mails=self.request.user.user_emails.mailer_first_email,
                                       source_mail=settings.EMAIL_HOST_USER,
                                       text=f'Password has changed successfully',
-                                      subject='Change password.')
+                                      subject='Change password.',
+                                      host=self.request.get_host())
                 
                 messages.add_message(request, messages.SUCCESS, "Password changed!")
             else:
@@ -299,11 +302,9 @@ class CampaignDetailView(LoginRequiredMixin, View):
 
     def post(self, request, campaign_id: int):
         if 'send' in request.POST:
+            # get campaign by id
             campaign = Campaign.objects.get(id=campaign_id)
             
-            # TODO Work on attachemnt send
-            # get campaign files
-            # campaign_files = campaign.campaign_files.all()
             try:
                 saved_campaign, created = UserSavedCampaigns.objects.get_or_create(user=self.request.user,
                                                                                    saved_campaign=campaign)
@@ -316,7 +317,10 @@ class CampaignDetailView(LoginRequiredMixin, View):
                 # send user mails
                 for email in self.request.user.user_emails.get_all_emails():
                     user_send_mail.delay(target_mail=email,
-                                         text=f'{campaign.campaign_name}.{campaign.campaign_description}',
+                                         campaign_description=campaign.campaign_description,
+                                         campaign_name = campaign.campaign_name,
+                                         campaign_id = campaign.id,
+                                         host = request.get_host(),
                                          subject='Saved campaign',
                                          message_id=saved_campaign.id)
 
@@ -689,7 +693,8 @@ class RegistrationPage(View):
                         target_mails=[link],
                         text='Confirm pls your email',
                         subject='Mail confirmation',
-                        link=links[link])
+                        link=links[link],
+                        host=self.request.get_host())
 
                 messages.add_message(request, messages.SUCCESS, "You successfully registered! Check your mail!")
                 return redirect('home')
@@ -735,7 +740,8 @@ class PasswordRecovery(View):
                 mass_send_mails.delay(target_mails=target_mail,
                                       source_mail=settings.EMAIL_HOST_USER,
                                       text=f'Your new Password : {new_password}',
-                                      subject='Change password.')
+                                      subject='Change password.',
+                                      host=self.request.get_host())
 
                 messages.add_message(request, messages.WARNING, "Password changed! Log in now please.")
                 return redirect('home')
