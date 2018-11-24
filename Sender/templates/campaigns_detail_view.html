@@ -13,7 +13,7 @@
             <br>
              <strong>Campaign tags</strong>:
                     {% for tag in  campaign.get_all_tags %}
-                <a href="{% url 'campaigns-saved-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
+                <a href="{% url 'campaigns-tag' tag %}" class="badge badge-pill badge-info">#{{ tag }}</a>
             {% endfor %}
 
             {% if campaign_files %}
