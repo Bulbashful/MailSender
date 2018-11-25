@@ -3,7 +3,14 @@ import os
 from celery import Celery
 from django.conf import settings
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'MessageSender.settings')
+"""
+On production
+export DJANGO_SETTINGS_MODULE="MessageSender.production_settings"
+====================================================================
+On test
+export DJANGO_SETTINGS_MODULE="MessageSender.settings"
+"""
+
 app = Celery('MessageSender', broker='amqp://localhost:5672/', backend='rpc://')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')

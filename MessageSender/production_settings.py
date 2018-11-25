@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
+
 """
 On production
 export DJANGO_SETTINGS_MODULE="MessageSender.production_settings"
@@ -84,26 +85,17 @@ WSGI_APPLICATION = 'MessageSender.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-# TODO On test
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-# TODO On production
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': sender_db,
-        'USER': sender_user,
-        'PASSWORD': veryhardpass,
+        'NAME': 'sender_db',
+        'USER': 'sender_user',
+        'PASSWORD': 'veryhardpass',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
 }
-"""
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -141,14 +133,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+
 STATIC_URL = '/static/'
 STATIC_ROOT = "/static/admin"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# TODO on production
-# SESSION_COOKIE_AGE = 2*3600
+SESSION_COOKIE_AGE = 2*3600
 
 # FOR SMTP/Mail
 AUTH_USER_EMAIL_UNIQUE = True
