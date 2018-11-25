@@ -299,17 +299,16 @@ class CampaignDetailView(LoginRequiredMixin, View):
 
     def post(self, request, campaign_id: int):
         # if user send campaign himself
-        if 'send' in request.POST:            
+        if 'send' in request.POST:
             try:
+                compaign_obj = Campaign.objects.get(id=campaign_id)
                 # get saved campaign by campaign ID
                 saved_campaign, created = UserSavedCampaigns.objects.get_or_create(user=self.request.user,
-                                                                                   saved_campaign__id=campaign_id)
-                
+                                                                                   saved_campaign=compaign_obj)
                 if not created:
                     saved_campaign.saved_campaign_sent_datetime = datetime.now()
 
                     saved_campaign.save()
-
                 # send user mail
                 user_send_mail.delay(target_mail=self.request.user.user_emails.mailer_first_email,
                                      campaign_id = campaign_id,

@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
-from .models import MailerUser, User, UserEmails
+from .models import MailerUser, User, UserEmails, Campaign
 from . import forms
+import base64
 
 
 class MailerUserTestCase(TestCase):
@@ -16,6 +17,10 @@ class MailerUserTestCase(TestCase):
         UserEmails.objects.create(user=user,
                                   mailer_first_email='test@gmail.com',
                                   mailer_second_email='test@yandex.by')
+
+        Campaign.objects.create(campaign_name='Apple',
+                                campaign_description='Hello',
+                                campaign_tags='3')
 
     def test_get_user(self):
         user = User.objects.get(username='John Smith')
@@ -64,5 +69,19 @@ class RegistrationTestCase(TestCase):
 
         form = forms.RegisterForm(data=input_data)
         self.failUnless(form.is_valid())
+
+
+class SendCampaignsTestCase(MailerUserTestCase, TestCase):
+
+    def test_send(self):
+        user = User.objects.get(username='John Smith')
+        campaign = Campaign.objects.get(campaign_name='Apple')
+        user.set_password('12345')
+        user.save()
+        client = Client()
+        response = client.post(f'/view-campaign/id-{campaign.id}/', follow=True,
+                               HTTP_AUTHORIZATION=f'Basic {user}:{user.password}')
+        self.assertEqual(response.status_code, 200)
+
 
 
