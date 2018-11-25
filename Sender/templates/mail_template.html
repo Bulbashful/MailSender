@@ -15,15 +15,6 @@
             {% if message_type in "save_company" %}
               <h2>{{ campaign_name }}</h2>
               <p class="lead">{{ campaign_description }}</p>
-              {% if campaign_files %}
-                <hr>
-                <strong>Compaign files:</strong>
-                  <ul>
-                    {% for file in campaign_files %}
-                      <li><a href="{{host}}{{ file.campaign_file.url }}">File #{{ file.id }}</a></li>
-                    {% endfor %}
-                  </ul>
-              {% endif %}
             {% else %}
               <h2>{{subject}}</h2>
               <p class="lead">{{ text }}</p>

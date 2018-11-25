@@ -170,7 +170,6 @@ class AccountSettings(LoginRequiredMixin, View):
             #return redirect('account-settings')
             for email in emails:
                 mass_send_mails.delay(
-                    source_mail=settings.EMAIL_HOST_USER,
                     target_mails=emails[email][0],
                     text=emails[email][1],
                     subject=emails[email][2],
@@ -184,7 +183,6 @@ class AccountSettings(LoginRequiredMixin, View):
             [setattr(user.user_account, changed_attr, changed_form.cleaned_data[changed_attr]) for changed_attr in changed_fields]
 
             mass_send_mails.delay(
-                source_mail=settings.EMAIL_HOST_USER,
                 target_mails=user.user_emails.mailer_first_email,
                 text=f'Changed: {changed_fields_string};',
                 subject='Change some fields',
@@ -267,8 +265,7 @@ class ChangePassword(LoginRequiredMixin, View):
                 # save user profile
                 self.request.user.save()
                 # send mail notification
-                mass_send_mails.delay(target_mails=self.request.user.user_emails.mailer_first_email,
-                                      source_mail=settings.EMAIL_HOST_USER,
+                mass_send_mails.delay(target_mails=self.request.user.user_emails.mailer_first_email,                                      
                                       text=f'Password has changed successfully',
                                       subject='Change password.',
                                       host=self.request.get_host())
@@ -302,13 +299,11 @@ class CampaignDetailView(LoginRequiredMixin, View):
 
     def post(self, request, campaign_id: int):
         # if user send campaign himself
-        if 'send' in request.POST:
-            # get campaign by id
-            campaign = Campaign.objects.get(id=campaign_id)
-            
+        if 'send' in request.POST:            
             try:
+                # get saved campaign by campaign ID
                 saved_campaign, created = UserSavedCampaigns.objects.get_or_create(user=self.request.user,
-                                                                                   saved_campaign=campaign)
+                                                                                   saved_campaign__id=campaign_id)
                 
                 if not created:
                     saved_campaign.saved_campaign_sent_datetime = datetime.now()
@@ -317,15 +312,13 @@ class CampaignDetailView(LoginRequiredMixin, View):
 
                 # send user mail
                 user_send_mail.delay(target_mail=self.request.user.user_emails.mailer_first_email,
-                                     campaign_description=campaign.campaign_description,
-                                     campaign_name = campaign.campaign_name,
-                                     campaign_id = campaign.id,
+                                     campaign_id = campaign_id,
                                      host = request.get_host(),
                                      subject='Saved campaign',
                                      message_id=saved_campaign.id)
 
                 messages.add_message(request, messages.SUCCESS, "Mail has been sent")
-                # case to save message
+                
             except Exception as err:
                 print(err)
                 messages.add_message(request, messages.ERROR, "Error while campaign save!")
@@ -667,9 +660,9 @@ class RegistrationPage(View):
                 # sorry; add true state if user register with one email
                 user_emails.mailer_with_single_email = True if second_email == '' else False
 
-                first_link = f'http://{request.get_host()}/activation/{new_user.id}/' \
+                first_link = f'/activation/{new_user.id}/' \
                     f'{hashlib.sha224(str(new_user.username + user_emails.mailer_first_email).encode()).hexdigest()}'
-                second_link = f'http://{request.get_host()}/activation/{new_user.id}/' \
+                second_link = f'/activation/{new_user.id}/' \
                     f'{hashlib.sha224(str(new_user.username + user_emails.mailer_second_email).encode()).hexdigest()}'
 
                 # create activation links dictionary. Key - emails, value - activation link
@@ -689,7 +682,6 @@ class RegistrationPage(View):
                 # send mail confirm message
                 for link in links:
                     mass_send_mails.delay(
-                        source_mail=settings.EMAIL_HOST_USER,
                         target_mails=[link],
                         text='Confirm pls your email',
                         subject='Mail confirmation',
@@ -738,7 +730,6 @@ class PasswordRecovery(View):
                 emails_user.user.save()
 
                 mass_send_mails.delay(target_mails=target_mail,
-                                      source_mail=settings.EMAIL_HOST_USER,
                                       text=f'Your new Password : {new_password}',
                                       subject='Change password.',
                                       host=self.request.get_host())
