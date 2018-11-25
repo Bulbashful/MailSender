@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import Group, User
 from django.utils.timezone import now
@@ -158,13 +160,16 @@ class Campaign(models.Model):
 
 
 class AttachedFiles(models.Model):
-    campaign_file = models.FileField(upload_to=f'attached_files/{now().date().strftime("%Y/%m/%d")}', null=True, blank=True)
+    campaign_file = models.FileField(upload_to=f'campaign_attached_files/{now().date().strftime("%Y/%m/%d")}', null=True, blank=True)
 
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='campaign_files',
                                  null=True, blank=True)
 
     class Meta:
         verbose_name_plural = 'Attached Campaigns Files'
+
+    def filename(self):
+        return os.path.basename(self.campaign_file.name)
 
     def __str__(self):
         return f'Campaign: {self.campaign.campaign_name}'
