@@ -301,10 +301,9 @@ class CampaignDetailView(LoginRequiredMixin, View):
         # if user send campaign himself
         if 'send' in request.POST:
             try:
-                compaign_obj = Campaign.objects.get(id=campaign_id)
                 # get saved campaign by campaign ID
                 saved_campaign, created = UserSavedCampaigns.objects.get_or_create(user=self.request.user,
-                                                                                   saved_campaign=compaign_obj)
+                                                                                   saved_campaign_id=campaign_id)
                 if not created:
                     saved_campaign.saved_campaign_sent_datetime = datetime.now()
 
@@ -320,7 +319,7 @@ class CampaignDetailView(LoginRequiredMixin, View):
                 
             except Exception as err:
                 print(err)
-                messages.add_message(request, messages.ERROR, "Error while campaign save!")
+                messages.add_message(request, messages.ERROR, f"Error while campaign save!")
         return redirect(f'/view-campaign/id-{campaign_id}')
 
 

@@ -64,6 +64,7 @@ def user_send_mail(target_mail, subject, campaign_id, host, message_id):
     campaign = Campaign.objects.get(id=campaign_id)
     # get files for campaign
     campaign_files = AttachedFiles.objects.filter(campaign=campaign)
+
     try:
         # prepare template payload
         mail_template_payload = {

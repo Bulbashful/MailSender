@@ -10,15 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
-
-"""
-On production
-export DJANGO_SETTINGS_MODULE="MessageSender.production_settings"
-====================================================================
-On test
-export DJANGO_SETTINGS_MODULE="MessageSender.settings"
-"""
-
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -32,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'cn4(fz3etx3psj(m$uh#o&c4it(_0cu@3akce44s-l%50oy&2t'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -132,7 +123,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
-
 
 STATIC_URL = '/static/'
 STATIC_ROOT = "/static/admin"
