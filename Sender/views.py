@@ -301,6 +301,7 @@ class CampaignDetailView(LoginRequiredMixin, View):
         return render(request, 'base.html', self.content)
 
     def post(self, request, campaign_id: int):
+        # if user send campaign himself
         if 'send' in request.POST:
             # get campaign by id
             campaign = Campaign.objects.get(id=campaign_id)
@@ -314,15 +315,14 @@ class CampaignDetailView(LoginRequiredMixin, View):
 
                     saved_campaign.save()
 
-                # send user mails
-                for email in self.request.user.user_emails.get_all_emails():
-                    user_send_mail.delay(target_mail=email,
-                                         campaign_description=campaign.campaign_description,
-                                         campaign_name = campaign.campaign_name,
-                                         campaign_id = campaign.id,
-                                         host = request.get_host(),
-                                         subject='Saved campaign',
-                                         message_id=saved_campaign.id)
+                # send user mail
+                user_send_mail.delay(target_mail=self.request.user.user_emails.mailer_first_email,
+                                     campaign_description=campaign.campaign_description,
+                                     campaign_name = campaign.campaign_name,
+                                     campaign_id = campaign.id,
+                                     host = request.get_host(),
+                                     subject='Saved campaign',
+                                     message_id=saved_campaign.id)
 
                 messages.add_message(request, messages.SUCCESS, "Mail has been sent")
                 # case to save message
